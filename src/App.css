@@ -264,7 +264,8 @@ body {
 /* Responsive */
 @media (max-width: 900px) {
   .hero-split {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column-reverse;
     text-align: center;
     gap: 40px;
   }
