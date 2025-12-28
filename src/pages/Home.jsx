@@ -172,10 +172,10 @@ const Home = () => {
     const [customerDetails, setCustomerDetails] = useState({
         name: '',
         phone: '',
-        tableNumber: '',
+        table_number: '',
         address: '',
         landmark: '',
-        pickupTime: ''
+        pickup_time: ''
     });
 
     const openProductSelection = (item) => {
@@ -232,9 +232,9 @@ const Home = () => {
         }
 
         // Validate details...
-        const { name, phone, tableNumber, address, pickupTime } = customerDetails;
-        if (orderType === 'dine-in' && (!name || !tableNumber)) { alert('Please provide your Name and Table Number.'); return; }
-        if (orderType === 'pickup' && (!name || !phone || !pickupTime)) { alert('Please provide Name, Phone Number, and Pickup Time.'); return; }
+        const { name, phone, table_number, address, pickup_time } = customerDetails;
+        if (orderType === 'dine-in' && (!name || !table_number)) { alert('Please provide your Name and Table Number.'); return; }
+        if (orderType === 'pickup' && (!name || !phone || !pickup_time)) { alert('Please provide Name, Phone Number, and Pickup Time.'); return; }
         if (orderType === 'delivery' && (!name || !phone || !address)) { alert('Please provide Name, Phone Number, and Delivery Address.'); return; }
 
         if (!paymentMethod) { alert('Please select a payment method.'); return; }
@@ -270,8 +270,8 @@ const Home = () => {
         // --- PREPARE MESSENGER MSG ---
         const orderDetailsStr = itemDetails.join('\n');
         let customerInfoStr = `Name: ${customerDetails.name}`;
-        if (orderType === 'dine-in') customerInfoStr += `\nTable Number: ${customerDetails.tableNumber}`;
-        if (orderType === 'pickup') customerInfoStr += `\nPhone: ${customerDetails.phone}\nPickup Time: ${customerDetails.pickupTime}`;
+        if (orderType === 'dine-in') customerInfoStr += `\nTable Number: ${customerDetails.table_number}`;
+        if (orderType === 'pickup') customerInfoStr += `\nPhone: ${customerDetails.phone}\nPickup Time: ${customerDetails.pickup_time}`;
         if (orderType === 'delivery') customerInfoStr += `\nPhone: ${customerDetails.phone}\nAddress: ${customerDetails.address}\nLandmark: ${customerDetails.landmark}`;
 
         const message = `
@@ -298,13 +298,22 @@ Thank you!`.trim();
         setIsCheckoutOpen(false);
     };
 
+    const formatTime = (timeStr) => {
+        if (!timeStr) return '';
+        const [hours, minutes] = timeStr.split(':');
+        const h = parseInt(hours);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const displayH = h % 12 || 12;
+        return `${displayH}:${minutes} ${ampm}`;
+    };
+
     return (
         <div className="page-wrapper">
             {/* Store Closed Overlay */}
             {!isOpen && (
                 <div style={{ background: '#ef4444', color: 'white', textAlign: 'center', padding: '12px', position: 'sticky', top: 0, zIndex: 1200, fontWeight: 700, fontSize: '0.9rem' }}>
                     <Clock size={16} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
-                    WE ARE CURRENTLY CLOSED. Our operating hours are {storeSettings.open_time || '4:00 PM'} to {storeSettings.close_time || '1:00 AM'}. Orders are disabled.
+                    WE ARE CURRENTLY CLOSED. Our operating hours are {formatTime(storeSettings.open_time) || '4:00 PM'} to {formatTime(storeSettings.close_time) || '1:00 AM'}. Orders are disabled.
                 </div>
             )}
 
@@ -313,7 +322,7 @@ Thank you!`.trim();
                     <Link to="/" className="brand">
                         <img src={storeSettings.logo_url || "/logo.png"} alt="Oesters Logo" style={{ height: '50px' }} />
                         <div className="brand-text">
-                            <span className="brand-name">{storeSettings.store_name || 'Oesters Cafe and Resto'}</span>
+                            <span className="brand-name">{storeSettings.store_name}</span>
                         </div>
                     </Link>
 
@@ -334,14 +343,12 @@ Thank you!`.trim();
             {/* Hero Section */}
             <section className="hero-section" style={{ overflow: 'hidden' }}>
                 <div className="container hero-split">
-                    <div className="hero-content animate-fade-up" style={{ textAlign: 'center' }}>
+                    <div className="hero-content animate-fade-up">
                         <h1>Quality in <span style={{ color: 'var(--accent)' }}>every bite</span></h1>
                         <p>Experience our specialty dishes and coffee in Bulacan. We bring you the best flavors and a welcoming atmosphere.</p>
-                        <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-                            <a href="#menu" className="btn-accent" style={{ padding: '15px 30px' }}>Explore Menu</a>
-                        </div>
+                        {/* Explore Menu button removed */}
                     </div>
-                    <div className="hero-image-container" style={{ position: 'relative' }}>
+                    <div className="hero-image-container">
                         {(storeSettings.banner_images || []).map((url, i) => (
                             <img
                                 key={i}
@@ -596,9 +603,9 @@ Thank you!`.trim();
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                         <div><label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 600 }}>Full Name</label><input type="text" value={customerDetails.name} onChange={(e) => setCustomerDetails({ ...customerDetails, name: e.target.value })} style={{ padding: '12px', width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0' }} /></div>
                                         {/* Simplified inputs for brevity */}
-                                        {orderType === 'dine-in' && <div><label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 600 }}>Table Number</label><input type="text" value={customerDetails.tableNumber} onChange={(e) => setCustomerDetails({ ...customerDetails, tableNumber: e.target.value })} style={{ padding: '12px', width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0' }} /></div>}
+                                        {orderType === 'dine-in' && <div><label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 600 }}>Table Number</label><input type="text" value={customerDetails.table_number} onChange={(e) => setCustomerDetails({ ...customerDetails, table_number: e.target.value })} style={{ padding: '12px', width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0' }} /></div>}
                                         {orderType !== 'dine-in' && <div><label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 600 }}>Phone</label><input type="tel" value={customerDetails.phone} onChange={(e) => setCustomerDetails({ ...customerDetails, phone: e.target.value })} style={{ padding: '12px', width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0' }} /></div>}
-                                        {orderType === 'pickup' && <div><label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 600 }}>Time</label><input type="time" value={customerDetails.pickupTime} onChange={(e) => setCustomerDetails({ ...customerDetails, pickupTime: e.target.value })} style={{ padding: '12px', width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0' }} /></div>}
+                                        {orderType === 'pickup' && <div><label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 600 }}>Time</label><input type="time" value={customerDetails.pickup_time} onChange={(e) => setCustomerDetails({ ...customerDetails, pickup_time: e.target.value })} style={{ padding: '12px', width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0' }} /></div>}
                                         {orderType === 'delivery' && <div><label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 600 }}>Address</label><textarea value={customerDetails.address} onChange={(e) => setCustomerDetails({ ...customerDetails, address: e.target.value })} style={{ padding: '12px', width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0' }} /></div>}
                                         {!['dine-in', 'pickup', 'delivery'].includes(orderType) && <div><label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 600 }}>Notes / Instructions</label><textarea value={customerDetails.landmark} onChange={(e) => setCustomerDetails({ ...customerDetails, landmark: e.target.value })} placeholder="Any specific requests..." style={{ padding: '12px', width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0' }} /></div>}
                                     </div>

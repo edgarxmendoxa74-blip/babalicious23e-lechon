@@ -98,23 +98,34 @@ const AdminDashboard = () => {
     // --- FETCH DATA FROM SUPABASE ---
     useEffect(() => {
         const fetchAdminData = async () => {
-            const { data: catData } = await supabase.from('categories').select('*').order('sort_order', { ascending: true });
-            if (catData) setCategories(catData);
+            try {
+                const { data: catData, error: catError } = await supabase.from('categories').select('*').order('sort_order', { ascending: true });
+                if (catError) throw catError;
+                if (catData) setCategories(catData);
 
-            const { data: itemData } = await supabase.from('menu_items').select('*').order('sort_order', { ascending: true });
-            if (itemData) setItems(itemData);
+                const { data: itemData, error: itemError } = await supabase.from('menu_items').select('*').order('sort_order', { ascending: true });
+                if (itemError) throw itemError;
+                if (itemData) setItems(itemData);
 
-            const { data: payData } = await supabase.from('payment_settings').select('*');
-            if (payData) setPaymentSettings(payData);
+                const { data: payData, error: payError } = await supabase.from('payment_settings').select('*');
+                if (payError) throw payError;
+                if (payData) setPaymentSettings(payData);
 
-            const { data: typeData } = await supabase.from('order_types').select('*');
-            if (typeData) setOrderTypes(typeData);
+                const { data: typeData, error: typeError } = await supabase.from('order_types').select('*');
+                if (typeError) throw typeError;
+                if (typeData) setOrderTypes(typeData);
 
-            const { data: storeData } = await supabase.from('store_settings').select('*').limit(1).single();
-            if (storeData) setStoreSettings(storeData);
+                const { data: storeData, error: storeError } = await supabase.from('store_settings').select('*').limit(1).single();
+                if (storeError && storeError.code !== 'PGRST116') throw storeError; // Ignore if no settings record yet
+                if (storeData) setStoreSettings(storeData);
 
-            const { data: orderData } = await supabase.from('orders').select('*').order('timestamp', { ascending: false });
-            if (orderData) setOrders(orderData);
+                const { data: orderData, error: orderError } = await supabase.from('orders').select('*').order('timestamp', { ascending: false });
+                if (orderError) throw orderError;
+                if (orderData) setOrders(orderData);
+            } catch (err) {
+                console.error('Error fetching admin data:', err);
+                showMessage(`Error loading data: ${err.message || 'Unknown error'}`);
+            }
         };
         fetchAdminData();
     }, []);
@@ -127,10 +138,14 @@ const AdminDashboard = () => {
         if (file) {
             const reader = new FileReader();
             reader.onloadend = async () => {
-                const qrUrl = reader.result;
-                const { error } = await supabase.from('payment_settings').update({ qr_url: qrUrl }).eq('id', methodId);
-                if (error) { console.error(error); showMessage('Error saving QR code to cloud.'); return; }
-                setPaymentSettings(prev => prev.map(m => m.id === methodId ? { ...m, qrUrl } : m));
+                const qr_url = reader.result;
+                const { error } = await supabase.from('payment_settings').update({ qr_url }).eq('id', methodId);
+                if (error) {
+                    console.error(error);
+                    showMessage(`Error saving QR code: ${error.message}`);
+                    return;
+                }
+                setPaymentSettings(prev => prev.map(m => m.id === methodId ? { ...m, qr_url } : m));
                 showMessage('QR code updated!');
             };
             reader.readAsDataURL(file);
@@ -173,7 +188,7 @@ const AdminDashboard = () => {
                 price: Number(formData.get('price')),
                 promo_price: formData.get('promoPrice') ? Number(formData.get('promoPrice')) : null,
                 category_id: formData.get('categoryId'),
-                image: formData.get('image') || 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=500&q=80',
+                image: editingItem.image || 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=500&q=80',
                 variations: tempVariations,
                 flavors: tempFlavors,
                 addons: tempAddons,
@@ -182,13 +197,14 @@ const AdminDashboard = () => {
 
             let finalItem;
             if (editingItem.id === 'new') {
+                if (!itemData.category_id) { showMessage('Please select a category first.'); return; }
                 const { data, error } = await supabase.from('menu_items').insert([itemData]).select().single();
-                if (error) { console.error(error); showMessage('Error saving to cloud.'); return; }
+                if (error) { console.error(error); showMessage(`Error saving: ${error.message}`); return; }
                 finalItem = data;
                 setItems([...items, finalItem]);
             } else {
                 const { data, error } = await supabase.from('menu_items').update(itemData).eq('id', editingItem.id).select().single();
-                if (error) { console.error(error); showMessage('Error updating cloud.'); return; }
+                if (error) { console.error(error); showMessage(`Error updating: ${error.message}`); return; }
                 finalItem = data;
                 setItems(items.map(i => i.id === finalItem.id ? finalItem : i));
             }
@@ -200,7 +216,7 @@ const AdminDashboard = () => {
         const deleteItem = async (id) => {
             if (window.confirm('Delete this product?')) {
                 const { error } = await supabase.from('menu_items').delete().eq('id', id);
-                if (error) { console.error(error); showMessage('Error deleting from cloud.'); return; }
+                if (error) { console.error(error); showMessage(`Error deleting: ${error.message}`); return; }
                 setItems(items.filter(i => i.id !== id));
                 showMessage('Product deleted.');
             }
@@ -221,14 +237,13 @@ const AdminDashboard = () => {
             setItems(updatedItems);
 
             // Update Supabase for all items (batch update)
-            const { error } = await supabase.from('menu_items').upsert(updatedItems.map(i => ({
-                id: i.id,
-                sort_order: i.sort_order,
-                name: i.name, // Supabase upsert needs required fields or it might fail/create new if ID mismatch
-                price: i.price,
-                category_id: i.category_id
-            })));
-            if (error) console.error('Error syncing order:', error);
+            const { error } = await supabase.from('menu_items').upsert(updatedItems);
+            if (error) {
+                console.error('Error syncing order:', error);
+                showMessage('Error saving item order.');
+            } else {
+                showMessage('Item order updated!');
+            }
         };
 
         const filteredItems = items.filter(item => {
@@ -325,7 +340,18 @@ const AdminDashboard = () => {
                         <select name="categoryId" defaultValue={editingItem.category_id} style={inputStyle}>
                             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
-                        <input name="image" defaultValue={editingItem.image} placeholder="Image URL" style={inputStyle} />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <label style={{ fontWeight: 600 }}>Product Image</label>
+                            {editingItem.image && <img src={editingItem.image} style={{ width: '100px', height: '100px', borderRadius: '12px', objectFit: 'cover' }} />}
+                            <input type="file" accept="image/*" onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => setEditingItem({ ...editingItem, image: reader.result });
+                                    reader.readAsDataURL(file);
+                                }
+                            }} style={inputStyle} />
+                        </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <input name="outOfStock" type="checkbox" defaultChecked={editingItem.out_of_stock} style={{ width: '20px', height: '20px' }} />
                             <label style={{ fontWeight: 600 }}>Mark as Out of Stock</label>
@@ -376,7 +402,7 @@ const AdminDashboard = () => {
             e.preventDefault();
             if (!newCat.trim()) return;
             const { data, error } = await supabase.from('categories').insert([{ name: newCat, sort_order: categories.length }]).select().single();
-            if (error) { console.error(error); showMessage('Error adding to cloud.'); return; }
+            if (error) { console.error(error); showMessage(`Error adding category: ${error.message}`); return; }
             setCategories([...categories, data]);
             setNewCat('');
             showMessage('Category added!');
@@ -390,7 +416,7 @@ const AdminDashboard = () => {
         const saveEdit = async (id) => {
             if (!editCatName.trim()) return;
             const { data, error } = await supabase.from('categories').update({ name: editCatName }).eq('id', id).select().single();
-            if (error) { console.error(error); showMessage('Error updating cloud.'); return; }
+            if (error) { console.error(error); showMessage(`Error updating: ${error.message}`); return; }
             setCategories(categories.map(c => c.id === id ? data : c));
             setEditingCatId(null);
             showMessage('Category updated!');
@@ -409,8 +435,13 @@ const AdminDashboard = () => {
             const updatedCats = newCats.map((cat, idx) => ({ ...cat, sort_order: idx }));
             setCategories(updatedCats);
 
-            const { error } = await supabase.from('categories').upsert(updatedCats.map(c => ({ id: c.id, name: c.name, sort_order: c.sort_order })));
-            if (error) console.error('Error syncing order:', error);
+            const { error } = await supabase.from('categories').upsert(updatedCats);
+            if (error) {
+                console.error('Error syncing order:', error);
+                showMessage('Error saving category order.');
+            } else {
+                showMessage('Category order updated!');
+            }
         };
 
         const deleteCategory = async (id) => {
@@ -420,7 +451,7 @@ const AdminDashboard = () => {
             }
             if (window.confirm('Delete category?')) {
                 const { error } = await supabase.from('categories').delete().eq('id', id);
-                if (error) { console.error(error); showMessage('Error deleting from cloud.'); return; }
+                if (error) { console.error(error); showMessage(`Error deleting: ${error.message}`); return; }
                 setCategories(categories.filter(c => c.id !== id));
                 showMessage('Category deleted.');
             }
@@ -473,7 +504,7 @@ const AdminDashboard = () => {
             e.preventDefault();
             if (!newType.trim()) return;
             const { data, error } = await supabase.from('order_types').insert([{ name: newType }]).select().single();
-            if (error) { console.error(error); showMessage('Error adding to cloud.'); return; }
+            if (error) { console.error(error); showMessage(`Error adding: ${error.message}`); return; }
             setOrderTypes([...orderTypes, data]);
             setNewType('');
             showMessage('Order type added!');
@@ -487,7 +518,7 @@ const AdminDashboard = () => {
         const saveEdit = async (id) => {
             if (!editName.trim()) return;
             const { data, error } = await supabase.from('order_types').update({ name: editName }).eq('id', id).select().single();
-            if (error) { console.error(error); showMessage('Error updating cloud.'); return; }
+            if (error) { console.error(error); showMessage(`Error updating: ${error.message}`); return; }
             setOrderTypes(orderTypes.map(t => t.id === id ? data : t));
             setEditingId(null);
             showMessage('Order type updated!');
@@ -496,7 +527,7 @@ const AdminDashboard = () => {
         const deleteType = async (id) => {
             if (window.confirm('Delete order type?')) {
                 const { error } = await supabase.from('order_types').delete().eq('id', id);
-                if (error) { console.error(error); showMessage('Error deleting from cloud.'); return; }
+                if (error) { console.error(error); showMessage(`Error deleting: ${error.message}`); return; }
                 setOrderTypes(orderTypes.filter(t => t.id !== id));
                 showMessage('Order type deleted.');
             }
@@ -548,7 +579,7 @@ const AdminDashboard = () => {
                 account_name: formData.get('accountName'),
             };
             const { data, error } = await supabase.from('payment_settings').update(updateData).eq('id', methodId).select().single();
-            if (error) { console.error(error); showMessage('Error updating cloud.'); return; }
+            if (error) { console.error(error); showMessage(`Error updating: ${error.message}`); return; }
             setPaymentSettings(paymentSettings.map(m => m.id === methodId ? data : m));
             setEditingMethodId(null);
             showMessage('Payment method updated!');
@@ -564,7 +595,7 @@ const AdminDashboard = () => {
                 qr_url: ''
             };
             const { data, error } = await supabase.from('payment_settings').insert([newMethod]).select().single();
-            if (error) { console.error(error); showMessage('Error adding to cloud.'); return; }
+            if (error) { console.error(error); showMessage(`Error adding: ${error.message}`); return; }
             setPaymentSettings([...paymentSettings, data]);
             setShowAddMethod(false);
             showMessage('Payment method added!');
@@ -573,7 +604,7 @@ const AdminDashboard = () => {
         const deleteMethod = async (id) => {
             if (window.confirm('Delete this payment method?')) {
                 const { error } = await supabase.from('payment_settings').delete().eq('id', id);
-                if (error) { console.error(error); showMessage('Error deleting from cloud.'); return; }
+                if (error) { console.error(error); showMessage(`Error deleting: ${error.message}`); return; }
                 setPaymentSettings(paymentSettings.filter(m => m.id !== id));
                 showMessage('Payment method deleted.');
             }
@@ -669,7 +700,7 @@ const AdminDashboard = () => {
 
         const updateOrderStatus = async (orderId, newStatus) => {
             const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
-            if (error) { console.error(error); showMessage('Error updating status on cloud.'); return; }
+            if (error) { console.error(error); showMessage(`Error updating status: ${error.message}`); return; }
             setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
             showMessage('Order status updated!');
         };
@@ -677,7 +708,7 @@ const AdminDashboard = () => {
         const deleteOrder = async (orderId) => {
             if (window.confirm('Are you sure you want to delete this order?')) {
                 const { error } = await supabase.from('orders').delete().eq('id', orderId);
-                if (error) { console.error(error); showMessage('Error deleting from cloud.'); return; }
+                if (error) { console.error(error); showMessage(`Error deleting: ${error.message}`); return; }
                 setOrders(orders.filter(o => o.id !== orderId));
                 showMessage('Order deleted.');
             }
@@ -715,7 +746,7 @@ const AdminDashboard = () => {
                             <strong>Date:</strong> ${new Date(order.timestamp).toLocaleString()}<br>
                             <strong>Type:</strong> ${(order.order_type || 'Dine-in').toUpperCase()}<br>
                             <strong>Cust:</strong> ${order.customer_details?.name}
-                            ${order.customer_details?.tableNumber ? `<br><strong>Table:</strong> ${order.customer_details.tableNumber}` : ''}
+                            ${order.customer_details?.table_number ? `<br><strong>Table:</strong> ${order.customer_details.table_number}` : ''}
                         </div>
                         <div class="divider"></div>
                         <div style="font-weight:bold; margin-bottom: 5px;">ITEMS:</div>
@@ -740,6 +771,7 @@ const AdminDashboard = () => {
                 </html>
             `);
             printWindow.document.close();
+            showMessage('Receipt generated! Check your print window.');
         };
 
         return (
@@ -774,26 +806,35 @@ const AdminDashboard = () => {
                                         <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{new Date(order.timestamp).toLocaleString()}</span>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <select
-                                            value={order.status || 'Pending'}
-                                            onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                                            style={{
-                                                padding: '6px 12px',
-                                                borderRadius: '8px',
-                                                border: '1px solid #cbd5e1',
-                                                fontSize: '0.85rem',
-                                                outline: 'none',
-                                                background: order.status === 'Completed' ? '#dcfce7' : order.status === 'Cancelled' ? '#fee2e2' : '#f8fafc',
-                                                color: order.status === 'Completed' ? '#166534' : order.status === 'Cancelled' ? '#991b1b' : 'inherit',
-                                                fontWeight: 600
-                                            }}
-                                        >
-                                            <option value="Pending">Pending</option>
-                                            <option value="Preparing">Preparing</option>
-                                            <option value="Ready">Ready</option>
-                                            <option value="Completed">Completed</option>
-                                            <option value="Cancelled">Cancelled</option>
-                                        </select>
+                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                            <select
+                                                id={`status-${order.id}`}
+                                                defaultValue={order.status || 'Pending'}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid #cbd5e1',
+                                                    fontSize: '0.85rem',
+                                                    outline: 'none',
+                                                    background: order.status === 'Completed' ? '#dcfce7' : order.status === 'Cancelled' ? '#fee2e2' : '#f8fafc',
+                                                    color: order.status === 'Completed' ? '#166534' : order.status === 'Cancelled' ? '#991b1b' : 'inherit',
+                                                    fontWeight: 600
+                                                }}
+                                            >
+                                                <option value="Pending">Pending</option>
+                                                <option value="Preparing">Preparing</option>
+                                                <option value="Ready">Ready</option>
+                                                <option value="Completed">Completed</option>
+                                                <option value="Cancelled">Cancelled</option>
+                                            </select>
+                                            <button
+                                                onClick={() => updateOrderStatus(order.id, document.getElementById(`status-${order.id}`).value)}
+                                                className="btn-primary"
+                                                style={{ padding: '6px 15px', fontSize: '0.8rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                                            >
+                                                <Save size={14} /> Save
+                                            </button>
+                                        </div>
                                         <button onClick={() => printReceipt(order)} style={{ color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer' }} title="Print Receipt"><Printer size={18} /></button>
                                         <button onClick={() => deleteOrder(order.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }} title="Delete Order"><Trash2 size={18} /></button>
                                     </div>
@@ -834,8 +875,13 @@ const AdminDashboard = () => {
                 manual_status: formData.get('manualStatus')
             };
 
-            const { data, error } = await supabase.from('store_settings').upsert({ id: storeSettings.id, ...updateData }).select().single();
-            if (error) { console.error(error); showMessage('Error saving to cloud.'); return; }
+            const payload = storeSettings.id ? { id: storeSettings.id, ...updateData } : updateData;
+            const { data, error } = await supabase.from('store_settings').upsert(payload).select().single();
+            if (error) {
+                console.error(error);
+                showMessage(`Error saving: ${error.message}`);
+                return;
+            }
             setStoreSettings(data);
             showMessage('General settings saved!');
         };
@@ -846,9 +892,21 @@ const AdminDashboard = () => {
                 const reader = new FileReader();
                 reader.onloadend = async () => {
                     const newBanners = [...(storeSettings.banner_images || []), reader.result];
-                    const { error } = await supabase.from('store_settings').update({ banner_images: newBanners }).eq('id', storeSettings.id);
-                    if (error) { console.error(error); showMessage('Error saving banner to cloud.'); return; }
-                    setStoreSettings({ ...storeSettings, banner_images: newBanners });
+                    let error;
+                    if (storeSettings.id) {
+                        const res = await supabase.from('store_settings').update({ banner_images: newBanners }).eq('id', storeSettings.id);
+                        error = res.error;
+                    } else {
+                        const res = await supabase.from('store_settings').upsert({ banner_images: newBanners }).select().single();
+                        error = res.error;
+                        if (res.data) setStoreSettings(res.data);
+                    }
+                    if (error) {
+                        console.error(error);
+                        showMessage(`Error saving banner: ${error.message}`);
+                        return;
+                    }
+                    if (storeSettings.id) setStoreSettings({ ...storeSettings, banner_images: newBanners });
                     showMessage('Banner uploaded!');
                 };
                 reader.readAsDataURL(file);
@@ -857,8 +915,16 @@ const AdminDashboard = () => {
 
         const removeBanner = async (index) => {
             const newBanners = (storeSettings.banner_images || []).filter((_, i) => i !== index);
+            if (!storeSettings.id) {
+                setStoreSettings({ ...storeSettings, banner_images: newBanners });
+                return;
+            }
             const { error } = await supabase.from('store_settings').update({ banner_images: newBanners }).eq('id', storeSettings.id);
-            if (error) { console.error(error); showMessage('Error removing from cloud.'); return; }
+            if (error) {
+                console.error(error);
+                showMessage(`Error removing: ${error.message}`);
+                return;
+            }
             setStoreSettings({ ...storeSettings, banner_images: newBanners });
             showMessage('Banner removed.');
         };
@@ -868,10 +934,22 @@ const AdminDashboard = () => {
             if (file) {
                 const reader = new FileReader();
                 reader.onloadend = async () => {
-                    const logoUrl = reader.result;
-                    const { error } = await supabase.from('store_settings').update({ logo_url: logoUrl }).eq('id', storeSettings.id);
-                    if (error) { console.error(error); showMessage('Error saving logo to cloud.'); return; }
-                    setStoreSettings({ ...storeSettings, logo_url: logoUrl });
+                    const logo_url = reader.result;
+                    let error;
+                    if (storeSettings.id) {
+                        const res = await supabase.from('store_settings').update({ logo_url }).eq('id', storeSettings.id);
+                        error = res.error;
+                    } else {
+                        const res = await supabase.from('store_settings').upsert({ logo_url }).select().single();
+                        error = res.error;
+                        if (res.data) setStoreSettings(res.data);
+                    }
+                    if (error) {
+                        console.error(error);
+                        showMessage(`Error saving logo: ${error.message}`);
+                        return;
+                    }
+                    if (storeSettings.id) setStoreSettings({ ...storeSettings, logo_url });
                     showMessage('Logo updated!');
                 };
                 reader.readAsDataURL(file);
@@ -1027,7 +1105,35 @@ const AdminDashboard = () => {
 
             {/* Main Content */}
             <main style={{ marginLeft: '260px', flex: 1, padding: '40px', maxWidth: '1200px' }}>
-                {message && <div style={{ background: '#dcfce7', color: '#166534', padding: '15px', borderRadius: '12px', marginBottom: '30px', textAlign: 'center' }}>{message}</div>}
+                {message && (
+                    <div style={{
+                        position: 'fixed',
+                        top: '20px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: message.toLowerCase().includes('error') ? '#ef4444' : '#10b981',
+                        color: 'white',
+                        padding: '12px 24px',
+                        borderRadius: '12px',
+                        zIndex: 5000,
+                        fontWeight: 700,
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        animation: 'slideDown 0.3s ease-out forwards'
+                    }}>
+                        {message.toLowerCase().includes('error') ? <X size={18} /> : <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '50%', padding: '2px' }}><Plus size={16} style={{ transform: 'rotate(45deg)' }} /></div>}
+                        {message}
+                        <style>{`
+                            @keyframes slideDown {
+                                0% { transform: translate(-50%, -100%); opacity: 0; }
+                                80% { transform: translate(-50%, 10px); }
+                                100% { transform: translate(-50%, 0); opacity: 1; }
+                            }
+                        `}</style>
+                    </div>
+                )}
 
                 {activeTab === 'menu' && <MenuManager />}
                 {activeTab === 'categories' && <CategoryManager />}

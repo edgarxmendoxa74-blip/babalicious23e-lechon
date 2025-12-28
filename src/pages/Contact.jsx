@@ -1,17 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Phone, Clock, Facebook, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 
 const Contact = () => {
+    const [storeSettings, setStoreSettings] = useState({
+        store_name: 'Oesters',
+        address: 'Bulacan, Philippines',
+        contact: '09563713967',
+        open_time: '16:00',
+        close_time: '01:00',
+        logo_url: '/logo.png'
+    });
+
+    useEffect(() => {
+        const fetchStoreSettings = async () => {
+            const { data } = await supabase.from('store_settings').select('*').limit(1).single();
+            if (data) setStoreSettings(data);
+        };
+        fetchStoreSettings();
+    }, []);
+
+    const formatTime = (timeStr) => {
+        if (!timeStr) return '';
+        const [hours, minutes] = timeStr.split(':');
+        const h = parseInt(hours);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const displayH = h % 12 || 12;
+        return `${displayH}:${minutes} ${ampm}`;
+    };
+
     return (
         <div className="page-wrapper">
             <header className="app-header">
                 <div className="container header-container">
                     <Link to="/" className="brand">
-                        <img src="/logo.png" alt="Oesters Logo" style={{ height: '50px' }} />
+                        <img src={storeSettings.logo_url || "/logo.png"} alt="Oesters Logo" style={{ height: '50px' }} />
                         <div className="brand-text">
-                            <span className="brand-name">Oesters</span>
-                            <span className="brand-sub">Cafe & Resto</span>
+                            <span className="brand-name">{storeSettings.store_name}</span>
                         </div>
                     </Link>
                     <nav className="header-nav" style={{ display: 'flex', gap: '20px' }}>
@@ -37,8 +63,7 @@ const Contact = () => {
                         </div>
                         <h3 style={{ marginBottom: '12px' }}>Our Location</h3>
                         <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                            Main Road, Barangay San Jose,<br />
-                            Bulacan, Philippines
+                            {storeSettings.address}
                         </p>
                     </div>
 
@@ -48,7 +73,7 @@ const Contact = () => {
                         </div>
                         <h3 style={{ marginBottom: '12px' }}>Contact</h3>
                         <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                            09563713967
+                            {storeSettings.contact}
                         </p>
                     </div>
 
@@ -58,8 +83,8 @@ const Contact = () => {
                         </div>
                         <h3 style={{ marginBottom: '12px' }}>Hours</h3>
                         <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                            Mon - Sat: 10:00 AM - 9:00 PM<br />
-                            Sunday: 11:00 AM - 8:00 PM
+                            Open daily from:<br />
+                            {formatTime(storeSettings.open_time)} - {formatTime(storeSettings.close_time)}
                         </p>
                     </div>
                 </div>
@@ -69,11 +94,11 @@ const Contact = () => {
                     <h2 style={{ fontSize: '2rem', marginBottom: '20px' }}>Stay Connected</h2>
                     <p style={{ marginBottom: '40px', color: 'rgba(255,255,255,0.8)' }}>Follow us on social media for daily specials and events.</p>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
-                        <a href="https://www.facebook.com/oesterscafeandresto" style={{ background: 'white', color: 'var(--primary)', padding: '15px 30px', borderRadius: '50px', textDecoration: 'none', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <a href="https://www.facebook.com/oesterscafeandresto" target="_blank" rel="noopener noreferrer" style={{ background: 'white', color: 'var(--primary)', padding: '15px 30px', borderRadius: '50px', textDecoration: 'none', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <Facebook size={20} />
                             Facebook
                         </a>
-                        <a href="#" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', padding: '15px 30px', borderRadius: '50px', textDecoration: 'none', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <a href="mailto:contact@oesters.com" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', padding: '15px 30px', borderRadius: '50px', textDecoration: 'none', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <Mail size={20} />
                             Email Us
                         </a>
