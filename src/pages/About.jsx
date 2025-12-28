@@ -23,13 +23,11 @@ const About = () => {
                 <div className="container header-container">
                     <Link to="/" className="brand">
                         <img src={storeSettings.logo_url || "/logo.png"} alt="Oesters Logo" style={{ height: '50px' }} />
-                        <div className="brand-text">
-                            <span className="brand-name">{storeSettings.store_name}</span>
-                        </div>
+
                     </Link>
                     <nav className="header-nav" style={{ display: 'flex', gap: '20px' }}>
                         <Link to="/" className="nav-link">Home</Link>
-                        <Link to="/about" className="nav-link">About</Link>
+
                         <Link to="/contact" className="nav-link">Contact</Link>
                     </nav>
                 </div>
@@ -40,7 +38,7 @@ const About = () => {
                     <div>
                         <h2 style={{ fontSize: '2.5rem', marginBottom: '30px', color: 'var(--primary)' }}>Where Seafood Meets Soul</h2>
                         <p style={{ marginBottom: '20px', lineHeight: '1.8' }}>
-                            {storeSettings.store_name} began with a simple idea: that high-quality seafood shouldn't be a luxury reserved only for the coast. Our founders, passionate foodies with a love for Bulacan's vibrant culture, set out to create a space where people could enjoy great food alongside artisanal coffee.
+                            {storeSettings.store_name} began with a simple idea: that high-quality seafood shouldn't be a luxury reserved only for the coast. Our founders, passionate foodies with a love for vibrant culture, set out to create a space where people could enjoy great food alongside artisanal coffee.
                         </p>
                         <p style={{ lineHeight: '1.8' }}>
                             Every oyster we serve is hand-selected and handled with the utmost care, ensuring that every bite is as fresh as the day it was harvested. Our coffee is equally curated, with beans sourced from local growers and expertly prepared by our baristas.

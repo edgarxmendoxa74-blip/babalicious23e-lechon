@@ -6,9 +6,9 @@ import { supabase } from '../supabaseClient';
 const Contact = () => {
     const [storeSettings, setStoreSettings] = useState({
         store_name: 'Oesters',
-        address: 'Bulacan, Philippines',
+        address: 'Philippines',
         contact: '09563713967',
-        open_time: '16:00',
+        open_time: '10:00',
         close_time: '01:00',
         logo_url: '/logo.png'
     });
@@ -36,13 +36,11 @@ const Contact = () => {
                 <div className="container header-container">
                     <Link to="/" className="brand">
                         <img src={storeSettings.logo_url || "/logo.png"} alt="Oesters Logo" style={{ height: '50px' }} />
-                        <div className="brand-text">
-                            <span className="brand-name">{storeSettings.store_name}</span>
-                        </div>
+
                     </Link>
                     <nav className="header-nav" style={{ display: 'flex', gap: '20px' }}>
                         <Link to="/" className="nav-link">Home</Link>
-                        <Link to="/about" className="nav-link">About</Link>
+
                         <Link to="/contact" className="nav-link">Contact</Link>
                     </nav>
                 </div>
@@ -52,7 +50,7 @@ const Contact = () => {
                 <div style={{ textAlign: 'center', marginBottom: '60px' }}>
                     <h1 style={{ fontSize: '3rem', color: 'var(--primary)', marginBottom: '15px' }}>Visit Us</h1>
                     <p style={{ color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto' }}>
-                        We're located in the heart of Bulacan. Come for the oysters, stay for the coffee.
+                        We're located in the heart of the city. Come for the oysters, stay for the coffee.
                     </p>
                 </div>
 

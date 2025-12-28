@@ -83,7 +83,7 @@ const AdminDashboard = () => {
         const saved = localStorage.getItem('storeSettings');
         return saved ? JSON.parse(saved) : {
             manual_status: 'auto', // auto, open, closed
-            open_time: '16:00',
+            open_time: '10:00',
             close_time: '01:00',
             store_name: '',
             address: 'Poblacion, El Nido, Palawan',
@@ -371,6 +371,15 @@ const AdminDashboard = () => {
                                 <label style={{ fontSize: '0.75rem' }}>Disabled</label>
                             </div>
                             <button type="button" onClick={() => setTempVariations(tempVariations.filter((_, idx) => idx !== i))} style={{ color: 'red', border: 'none', background: 'none' }}><X size={18} /></button>
+                        </div>
+                    ))}
+
+                    {/* Flavors */}
+                    <SectionLabel title="Flavors" onAdd={() => setTempFlavors([...tempFlavors, ''])} />
+                    {tempFlavors.map((f, i) => (
+                        <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'center' }}>
+                            <input value={f} onChange={e => { const n = [...tempFlavors]; n[i] = e.target.value; setTempFlavors(n); }} placeholder="Flavor Name (e.g. Buffalo)" style={inputStyle} />
+                            <button type="button" onClick={() => setTempFlavors(tempFlavors.filter((_, idx) => idx !== i))} style={{ color: 'red', border: 'none', background: 'none' }}><X size={18} /></button>
                         </div>
                     ))}
 
@@ -719,7 +728,9 @@ const AdminDashboard = () => {
     const OrderHistory = () => {
         const stats = orders.reduce((acc, order) => {
             acc.totalOrders++;
-            acc.totalSales += Number(order.total_amount || 0);
+            if (order.status !== 'Cancelled') {
+                acc.totalSales += Number(order.total_amount || 0);
+            }
             if (order.status === 'Pending' || !order.status) acc.pendingOrders++;
             return acc;
         }, { totalOrders: 0, totalSales: 0, pendingOrders: 0 });

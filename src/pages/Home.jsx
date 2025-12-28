@@ -39,7 +39,7 @@ const Home = () => {
     ]);
     const [storeSettings, setStoreSettings] = useState({
         manual_status: 'auto',
-        open_time: '16:00',
+        open_time: '10:00',
         close_time: '01:00',
         store_name: '',
         address: 'Poblacion, El Nido, Palawan',
@@ -162,7 +162,7 @@ const Home = () => {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [selectionOptions, setSelectionOptions] = useState({
         variation: null,
-        flavor: null,
+        flavors: [],
         addons: []
     });
 
@@ -185,16 +185,19 @@ const Home = () => {
         setSelectedProduct(item);
         setSelectionOptions({
             variation: firstVariation || null,
-            flavor: firstFlavor,
+            flavors: [],
             addons: []
         });
     };
 
     const addToCart = (item, options) => {
-        const cartItemId = `${item.id}-${options.variation?.name || ''}-${options.flavor || ''}-${options.addons.map(a => a.name).join(',')}`;
+        const cartItemId = `${item.id}-${options.variation?.name || ''}-${options.flavors.sort().join(',')}-${options.addons.map(a => a.name).join(',')}`;
         const existing = cart.find(i => i.cartItemId === cartItemId);
 
-        const price = options.variation ? Number(options.variation.price) : Number(item.promo_price || item.price);
+        const variationPrice = options.variation ? Number(options.variation.price) : 0;
+        const basePrice = Number(item.promo_price || item.price);
+        // Use variation price if set (>0), otherwise use base price
+        const price = variationPrice > 0 ? variationPrice : basePrice;
         const addonsPrice = options.addons.reduce((sum, a) => sum + Number(a.price), 0);
         const finalPrice = price + addonsPrice;
 
@@ -205,7 +208,7 @@ const Home = () => {
                 ...item,
                 cartItemId,
                 selectedVariation: options.variation,
-                selectedFlavor: options.flavor,
+                selectedFlavors: options.flavors,
                 selectedAddons: options.addons,
                 finalPrice,
                 quantity: 1
@@ -243,7 +246,7 @@ const Home = () => {
         const itemDetails = cart.map(item => {
             let d = `${item.name} (x${item.quantity})`;
             if (item.selectedVariation) d += ` - ${item.selectedVariation.name}`;
-            if (item.selectedFlavor) d += ` [${item.selectedFlavor}]`;
+            if (item.selectedFlavors && item.selectedFlavors.length > 0) d += ` [${item.selectedFlavors.join(', ')}]`;
             if (item.selectedAddons.length > 0) d += ` + ${item.selectedAddons.map(a => a.name).join(', ')}`;
             return d;
         });
@@ -326,7 +329,7 @@ Thank you!`.trim();
                     <nav className="header-nav" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                         <div style={{ display: 'flex', gap: '20px' }}>
                             <Link to="/" className="nav-link">Home</Link>
-                            <Link to="/about" className="nav-link">About</Link>
+
                             <Link to="/contact" className="nav-link">Contact</Link>
                         </div>
                         <button className="btn-accent" onClick={() => setIsCartOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -342,7 +345,7 @@ Thank you!`.trim();
                 <div className="container hero-split">
                     <div className="hero-content animate-fade-up">
                         <h1>Quality in <span style={{ color: 'var(--accent)' }}>every bite</span></h1>
-                        <p>Experience our specialty dishes and coffee in Bulacan. We bring you the best flavors and a welcoming atmosphere.</p>
+                        <p>Experience our specialty dishes and coffee. We bring you the best flavors and a welcoming atmosphere.</p>
                         {/* Explore Menu button removed */}
                     </div>
                     <div className="hero-image-container">
@@ -493,10 +496,31 @@ Thank you!`.trim();
                         )}
                         {selectedProduct.flavors && selectedProduct.flavors.length > 0 && (
                             <div style={{ marginBottom: '20px' }}>
-                                <label style={{ fontWeight: 700, display: 'block', marginBottom: '10px' }}>Select Flavor</label>
+                                <label style={{ fontWeight: 700, display: 'block', marginBottom: '10px' }}>Select Flavors (You can pick multiple)</label>
                                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                                     {selectedProduct.flavors.map(f => (
-                                        <button key={f} onClick={() => setSelectionOptions({ ...selectionOptions, flavor: f })} style={{ padding: '8px 15px', borderRadius: '10px', border: '1px solid var(--primary)', background: selectionOptions.flavor === f ? 'var(--primary)' : 'white', color: selectionOptions.flavor === f ? 'white' : 'var(--primary)', cursor: 'pointer' }}>{f}</button>
+                                        <button
+                                            key={f}
+                                            onClick={() => {
+                                                const exists = selectionOptions.flavors.includes(f);
+                                                let newFlavors;
+                                                if (exists) {
+                                                    newFlavors = selectionOptions.flavors.filter(x => x !== f);
+                                                } else {
+                                                    newFlavors = [...selectionOptions.flavors, f];
+                                                }
+                                                setSelectionOptions({ ...selectionOptions, flavors: newFlavors });
+                                            }}
+                                            style={{
+                                                padding: '8px 15px', borderRadius: '10px',
+                                                border: '1px solid var(--primary)',
+                                                background: selectionOptions.flavors.includes(f) ? 'var(--primary)' : 'white',
+                                                color: selectionOptions.flavors.includes(f) ? 'white' : 'var(--primary)',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            {f}
+                                        </button>
                                     ))}
                                 </div>
                             </div>
@@ -504,7 +528,7 @@ Thank you!`.trim();
 
                         <button className="btn-primary" style={{ width: '100%', padding: '15px', fontWeight: 700, fontSize: '1.1rem' }} onClick={() => addToCart(selectedProduct, selectionOptions)}>
                             Add to Cart - ₱{(
-                                (selectionOptions.variation ? Number(selectionOptions.variation.price) : Number(selectedProduct.promo_price || selectedProduct.price)) +
+                                ((selectionOptions.variation && Number(selectionOptions.variation.price) > 0) ? Number(selectionOptions.variation.price) : Number(selectedProduct.promo_price || selectedProduct.price)) +
                                 selectionOptions.addons.reduce((sum, a) => sum + Number(a.price), 0)
                             )}
                         </button>
@@ -637,13 +661,16 @@ Thank you!`.trim();
                                 <img src={item.image} alt={item.name} style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
                                 <div style={{ flex: 1 }}>
                                     <h4 style={{ margin: 0 }}>{item.name}</h4>
-                                    <p style={{ margin: '2px 0 5px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.selectedVariation?.name} {item.selectedFlavor ? `| ${item.selectedFlavor}` : ''}</p>
+                                    <p style={{ margin: '2px 0 5px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                        {item.selectedVariation?.name}
+                                        {item.selectedFlavors && item.selectedFlavors.length > 0 ? ` | ${item.selectedFlavors.join(', ')}` : ''}
+                                    </p>
                                     <span style={{ fontWeight: 700 }}>₱{item.finalPrice}</span>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     <button onClick={() => removeFromCart(item.cartItemId)} style={{ border: '1px solid var(--border)', background: 'none', padding: '2px', borderRadius: '4px' }}><Minus size={14} /></button>
                                     <span>{item.quantity}</span>
-                                    <button onClick={() => addToCart(item, { variation: item.selectedVariation, flavor: item.selectedFlavor, addons: item.selectedAddons })} style={{ border: '1px solid var(--border)', background: 'none', padding: '2px', borderRadius: '4px' }}><Plus size={14} /></button>
+                                    <button onClick={() => addToCart(item, { variation: item.selectedVariation, flavors: item.selectedFlavors, addons: item.selectedAddons })} style={{ border: '1px solid var(--border)', background: 'none', padding: '2px', borderRadius: '4px' }}><Plus size={14} /></button>
                                     <button onClick={() => deleteFromCart(item.cartItemId)} style={{ marginLeft: '5px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><Trash2 size={16} /></button>
                                 </div>
                             </div>
