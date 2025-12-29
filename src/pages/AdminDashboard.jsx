@@ -375,13 +375,40 @@ const AdminDashboard = () => {
                     ))}
 
                     {/* Flavors */}
-                    <SectionLabel title="Flavors" onAdd={() => setTempFlavors([...tempFlavors, ''])} />
-                    {tempFlavors.map((f, i) => (
-                        <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'center' }}>
-                            <input value={f} onChange={e => { const n = [...tempFlavors]; n[i] = e.target.value; setTempFlavors(n); }} placeholder="Flavor Name (e.g. Buffalo)" style={inputStyle} />
-                            <button type="button" onClick={() => setTempFlavors(tempFlavors.filter((_, idx) => idx !== i))} style={{ color: 'red', border: 'none', background: 'none' }}><X size={18} /></button>
-                        </div>
-                    ))}
+                    <SectionLabel title="Flavors" onAdd={() => setTempFlavors([...tempFlavors, { name: '', disabled: false }])} />
+                    {tempFlavors.map((f, i) => {
+                        const name = typeof f === 'string' ? f : f.name;
+                        const disabled = typeof f === 'object' ? f.disabled : false;
+                        return (
+                            <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'center' }}>
+                                <input
+                                    value={name}
+                                    onChange={e => {
+                                        const n = [...tempFlavors];
+                                        if (typeof n[i] === 'string') n[i] = { name: e.target.value, disabled: false };
+                                        else n[i] = { ...n[i], name: e.target.value };
+                                        setTempFlavors(n);
+                                    }}
+                                    placeholder="Flavor Name (e.g. Buffalo)"
+                                    style={inputStyle}
+                                />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={disabled}
+                                        onChange={e => {
+                                            const n = [...tempFlavors];
+                                            if (typeof n[i] === 'string') n[i] = { name: n[i], disabled: e.target.checked };
+                                            else n[i] = { ...n[i], disabled: e.target.checked };
+                                            setTempFlavors(n);
+                                        }}
+                                    />
+                                    <label style={{ fontSize: '0.75rem' }}>Disabled</label>
+                                </div>
+                                <button type="button" onClick={() => setTempFlavors(tempFlavors.filter((_, idx) => idx !== i))} style={{ color: 'red', border: 'none', background: 'none' }}><X size={18} /></button>
+                            </div>
+                        );
+                    })}
 
                     {/* Addons */}
                     <SectionLabel title="Add-ons" onAdd={() => setTempAddons([...tempAddons, { name: 'Addon', price: 0 }])} />

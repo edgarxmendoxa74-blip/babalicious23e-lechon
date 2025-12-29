@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
     out_of_stock BOOLEAN DEFAULT FALSE,
     sort_order INTEGER DEFAULT 0,
     variations JSONB DEFAULT '[]', -- [{name, price, disabled}]
-    flavors JSONB DEFAULT '[]',    -- [string]
+    flavors JSONB DEFAULT '[]',    -- [{name, disabled}] or [string] (for backward compatibility)
     addons JSONB DEFAULT '[]',      -- [{name, price, disabled}]
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

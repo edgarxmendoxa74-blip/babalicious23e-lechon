@@ -502,30 +502,37 @@ Thank you!`.trim();
                             <div style={{ marginBottom: '20px' }}>
                                 <label style={{ fontWeight: 700, display: 'block', marginBottom: '10px' }}>Select Flavors (You can pick multiple)</label>
                                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                                    {selectedProduct.flavors.map(f => (
-                                        <button
-                                            key={f}
-                                            onClick={() => {
-                                                const exists = selectionOptions.flavors.includes(f);
-                                                let newFlavors;
-                                                if (exists) {
-                                                    newFlavors = selectionOptions.flavors.filter(x => x !== f);
-                                                } else {
-                                                    newFlavors = [...selectionOptions.flavors, f];
-                                                }
-                                                setSelectionOptions({ ...selectionOptions, flavors: newFlavors });
-                                            }}
-                                            style={{
-                                                padding: '8px 15px', borderRadius: '10px',
-                                                border: '1px solid var(--primary)',
-                                                background: selectionOptions.flavors.includes(f) ? 'var(--primary)' : 'white',
-                                                color: selectionOptions.flavors.includes(f) ? 'white' : 'var(--primary)',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            {f}
-                                        </button>
-                                    ))}
+                                    {selectedProduct.flavors.map(f => {
+                                        const name = typeof f === 'string' ? f : f.name;
+                                        const disabled = typeof f === 'object' ? f.disabled : false;
+
+                                        if (disabled) return null;
+
+                                        return (
+                                            <button
+                                                key={name}
+                                                onClick={() => {
+                                                    const exists = selectionOptions.flavors.includes(name);
+                                                    let newFlavors;
+                                                    if (exists) {
+                                                        newFlavors = selectionOptions.flavors.filter(x => x !== name);
+                                                    } else {
+                                                        newFlavors = [...selectionOptions.flavors, name];
+                                                    }
+                                                    setSelectionOptions({ ...selectionOptions, flavors: newFlavors });
+                                                }}
+                                                style={{
+                                                    padding: '8px 15px', borderRadius: '10px',
+                                                    border: '1px solid var(--primary)',
+                                                    background: selectionOptions.flavors.includes(name) ? 'var(--primary)' : 'white',
+                                                    color: selectionOptions.flavors.includes(name) ? 'white' : 'var(--primary)',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                {name}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
