@@ -559,7 +559,7 @@ const AdminDashboard = () => {
             // Update DB
             const { error } = await supabase.from('order_types').upsert({
                 id: type.id,
-                name: type.name, // Ensure name is saved (e.g. "Take Out")
+                name: type.name, // Ensure name is saved (e.g. "Pickup")
                 is_active: newStatus
             });
 
