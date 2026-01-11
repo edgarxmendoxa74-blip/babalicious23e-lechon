@@ -26,7 +26,8 @@ import {
     FileText,
     Camera,
     Utensils,
-    Truck
+    Truck,
+    Menu
 } from 'lucide-react';
 import { categories as initialCategories, menuItems as initialItems } from '../data/MenuData';
 
@@ -34,6 +35,8 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('menu'); // menu, categories, orders, payment, orderTypes
     const [message, setMessage] = useState('');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
 
     // --- STATE MANAGEMENT ---
     const [items, setItems] = useState(() => {
@@ -54,7 +57,6 @@ const AdminDashboard = () => {
     const [orderTypes, setOrderTypes] = useState(() => {
         const saved = localStorage.getItem('orderTypes');
         return saved ? JSON.parse(saved) : [
-            { id: 'dine-in', name: 'Dine-in' },
             { id: 'pickup', name: 'Pickup' },
             { id: 'delivery', name: 'Delivery' }
         ];
@@ -89,11 +91,7 @@ const AdminDashboard = () => {
             address: 'Poblacion, El Nido, Palawan',
             contact: '09563713967',
             logo_url: '',
-            banner_images: [
-                'https://images.unsplash.com/photo-1517701604599-bb29b565094d?auto=format&fit=crop&w=1200&q=80',
-                'https://images.unsplash.com/photo-1541167760496-162955ed8a9f?auto=format&fit=crop&w=1200&q=80',
-                'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=80'
-            ]
+            banner_images: []
         };
     });
 
@@ -304,7 +302,7 @@ const AdminDashboard = () => {
                                         {item.promo_price ? (
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                                 <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)', fontSize: '0.8rem' }}>₱{item.price}</span>
-                                                <span style={{ color: '#ef4444', fontWeight: 700 }}>₱{item.promo_price}</span>
+                                                <span style={{ color: 'var(--secondary)', fontWeight: 700 }}>₱{item.promo_price}</span>
                                             </div>
                                         ) : <span style={{ fontWeight: 700 }}>₱{item.price}</span>}
                                     </td>
@@ -535,8 +533,7 @@ const AdminDashboard = () => {
     // --- COMPONENT: ORDER TYPE MANAGER ---
     const OrderTypeManager = () => {
         const FIXED_TYPES = [
-            { id: 'dine-in', name: 'Dine-in', defaultActive: true },
-            { id: 'pickup', name: 'Take Out', defaultActive: true },
+            { id: 'pickup', name: 'Pickup', defaultActive: true },
             { id: 'delivery', name: 'Delivery', defaultActive: true }
         ];
 
@@ -590,7 +587,7 @@ const AdminDashboard = () => {
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     color: 'white'
                                 }}>
-                                    {t.id === 'dine-in' && <Utensils size={20} />}
+
                                     {t.id === 'pickup' && <ShoppingBag size={20} />}
                                     {t.id === 'delivery' && <Truck size={20} />}
                                 </div>
@@ -900,7 +897,7 @@ const AdminDashboard = () => {
                                             </button>
                                         </div>
                                         <button onClick={() => printReceipt(order)} style={{ color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer' }} title="Print Receipt"><Printer size={18} /></button>
-                                        <button onClick={() => deleteOrder(order.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }} title="Delete Order"><Trash2 size={18} /></button>
+                                        <button onClick={() => deleteOrder(order.id)} style={{ color: 'var(--secondary)', background: 'none', border: 'none', cursor: 'pointer' }} title="Delete Order"><Trash2 size={18} /></button>
                                     </div>
                                 </div>
                                 <div style={{ marginBottom: '10px', fontSize: '0.95rem' }}>
@@ -934,9 +931,9 @@ const AdminDashboard = () => {
                 store_name: formData.get('storeName'),
                 address: formData.get('address'),
                 contact: formData.get('contact'),
-                open_time: formData.get('openTime'),
-                close_time: formData.get('closeTime'),
-                manual_status: formData.get('manualStatus')
+                open_time: formData.get('openTime') || null,
+                close_time: formData.get('closeTime') || null,
+                manual_status: formData.get('manualStatus'),
             };
 
             const payload = storeSettings.id ? { id: storeSettings.id, ...updateData } : updateData;
@@ -953,25 +950,30 @@ const AdminDashboard = () => {
         const handleBannerUpload = async (e) => {
             const file = e.target.files[0];
             if (file) {
+                setIsUploading(true);
                 const reader = new FileReader();
                 reader.onloadend = async () => {
                     const newBanners = [...(storeSettings.banner_images || []), reader.result];
                     let error;
-                    if (storeSettings.id) {
-                        const res = await supabase.from('store_settings').update({ banner_images: newBanners }).eq('id', storeSettings.id);
-                        error = res.error;
-                    } else {
-                        const res = await supabase.from('store_settings').upsert({ banner_images: newBanners }).select().single();
-                        error = res.error;
-                        if (res.data) setStoreSettings(res.data);
+                    try {
+                        if (storeSettings.id) {
+                            const res = await supabase.from('store_settings').update({ banner_images: newBanners }).eq('id', storeSettings.id);
+                            error = res.error;
+                        } else {
+                            const res = await supabase.from('store_settings').upsert({ banner_images: newBanners }).select().single();
+                            error = res.error;
+                            if (res.data) setStoreSettings(res.data);
+                        }
+                        if (error) {
+                            console.error(error);
+                            showMessage(`Error saving banner: ${error.message}`);
+                            return;
+                        }
+                        if (storeSettings.id) setStoreSettings({ ...storeSettings, banner_images: newBanners });
+                        showMessage('Banner uploaded!');
+                    } finally {
+                        setIsUploading(false);
                     }
-                    if (error) {
-                        console.error(error);
-                        showMessage(`Error saving banner: ${error.message}`);
-                        return;
-                    }
-                    if (storeSettings.id) setStoreSettings({ ...storeSettings, banner_images: newBanners });
-                    showMessage('Banner uploaded!');
                 };
                 reader.readAsDataURL(file);
             }
@@ -1025,7 +1027,7 @@ const AdminDashboard = () => {
                 <h2 style={{ marginBottom: '30px' }}>Store Settings</h2>
 
                 <form onSubmit={handleSave}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '30px' }}>
                         <div>
                             <h3 style={{ fontSize: '1.1rem', marginBottom: '20px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <Clock size={20} /> Store Availability
@@ -1115,23 +1117,30 @@ const AdminDashboard = () => {
                                     height: '140px',
                                     border: '3px dashed var(--primary)',
                                     borderRadius: '16px',
-                                    background: '#fff5f5',
+                                    background: isUploading ? 'rgba(0,0,0,0.05)' : 'rgba(0, 132, 68, 0.05)',
                                     color: 'var(--primary)',
-                                    cursor: 'pointer',
+                                    cursor: isUploading ? 'not-allowed' : 'pointer',
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     gap: '10px',
                                     transition: 'all 0.3s',
-                                    fontWeight: 700
+                                    fontWeight: 700,
+                                    opacity: isUploading ? 0.6 : 1
                                 }}
-                                    onMouseOver={(e) => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = 'var(--primary-dark)'; }}
-                                    onMouseOut={(e) => { e.currentTarget.style.background = '#fff5f5'; e.currentTarget.style.borderColor = 'var(--primary)'; }}
+                                    onMouseOver={(e) => { if (!isUploading) { e.currentTarget.style.background = 'rgba(0, 132, 68, 0.1)'; e.currentTarget.style.borderColor = 'var(--primary-dark)'; } }}
+                                    onMouseOut={(e) => { if (!isUploading) { e.currentTarget.style.background = 'rgba(0, 132, 68, 0.05)'; e.currentTarget.style.borderColor = 'var(--primary)'; } }}
                                 >
-                                    <Plus size={32} />
-                                    <span style={{ fontSize: '0.9rem' }}>Add New Banner</span>
-                                    <input type="file" accept="image/*" onChange={handleBannerUpload} style={{ display: 'none' }} />
+                                    {isUploading ? (
+                                        <div className="spinner-loader"></div>
+                                    ) : (
+                                        <>
+                                            <Plus size={32} />
+                                            <span style={{ fontSize: '0.9rem' }}>Add New Banner</span>
+                                            <input type="file" accept="image/*" onChange={handleBannerUpload} style={{ display: 'none' }} disabled={isUploading} />
+                                        </>
+                                    )}
                                 </label>
                             </div>
                         </div>
@@ -1144,22 +1153,62 @@ const AdminDashboard = () => {
 
 
     // --- MAIN RENDER ---
+    const isMobile = window.innerWidth <= 1024;
+
     return (
         <div className="admin-layout" style={{ display: 'flex', minHeight: '100vh', background: '#f1f5f9', fontFamily: 'Inter' }}>
+            {/* Mobile Header */}
+            <div style={{
+                display: 'none',
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '60px',
+                background: 'var(--primary)',
+                color: 'white',
+                alignItems: 'center',
+                padding: '0 20px',
+                zIndex: 4000,
+                boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+            }} className="mobile-only-flex">
+                <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '10px', marginLeft: '-10px' }}>
+                    <Menu size={24} />
+                </button>
+                <span style={{ fontWeight: 800, fontSize: '1.1rem', marginLeft: '10px' }}>Admin Dashboard</span>
+            </div>
+
             {/* Sidebar */}
-            <aside style={{ width: '260px', background: 'var(--primary)', color: 'white', padding: '30px 20px', position: 'fixed', height: '100vh' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '50px', paddingLeft: '10px' }}>
-                    <Package size={28} color="var(--accent)" />
-                    <span style={{ fontSize: '1.4rem', fontWeight: 700, fontFamily: 'Playfair Display' }}>Oesters</span>
+            <aside
+                className={`admin-sidebar ${isSidebarOpen ? 'open' : ''}`}
+                style={{
+                    width: '260px',
+                    background: 'var(--primary)',
+                    color: 'white',
+                    padding: '30px 20px',
+                    position: 'fixed',
+                    height: '100vh',
+                    zIndex: 4500,
+                    transition: 'transform 0.3s ease'
+                }}
+            >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '50px', paddingLeft: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Package size={28} color="var(--accent)" />
+                        <span style={{ fontSize: '1.4rem', fontWeight: 700, fontFamily: 'Playfair Display' }}>Babalicious Lechon</span>
+                    </div>
+                    <button className="mobile-only-block" onClick={() => setIsSidebarOpen(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+                        <X size={24} />
+                    </button>
                 </div>
 
                 <nav style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                    <SidebarItem icon={<List size={20} />} label="Menu Items" active={activeTab === 'menu'} onClick={() => setActiveTab('menu')} />
-                    <SidebarItem icon={<Tag size={20} />} label="Categories" active={activeTab === 'categories'} onClick={() => setActiveTab('categories')} />
-                    <SidebarItem icon={<ShoppingBag size={20} />} label="Orders" active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} />
-                    <SidebarItem icon={<Settings size={20} />} label="Order Types" active={activeTab === 'orderTypes'} onClick={() => setActiveTab('orderTypes')} />
-                    <SidebarItem icon={<CreditCard size={20} />} label="Payment Methods" active={activeTab === 'payment'} onClick={() => setActiveTab('payment')} />
-                    <SidebarItem icon={<LayoutDashboard size={20} />} label="General Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
+                    <SidebarItem icon={<List size={20} />} label="Menu Items" active={activeTab === 'menu'} onClick={() => { setActiveTab('menu'); setIsSidebarOpen(false); }} />
+                    <SidebarItem icon={<Tag size={20} />} label="Categories" active={activeTab === 'categories'} onClick={() => { setActiveTab('categories'); setIsSidebarOpen(false); }} />
+                    <SidebarItem icon={<ShoppingBag size={20} />} label="Orders" active={activeTab === 'orders'} onClick={() => { setActiveTab('orders'); setIsSidebarOpen(false); }} />
+                    <SidebarItem icon={<Settings size={20} />} label="Order Types" active={activeTab === 'orderTypes'} onClick={() => { setActiveTab('orderTypes'); setIsSidebarOpen(false); }} />
+                    <SidebarItem icon={<CreditCard size={20} />} label="Payment Methods" active={activeTab === 'payment'} onClick={() => { setActiveTab('payment'); setIsSidebarOpen(false); }} />
+                    <SidebarItem icon={<LayoutDashboard size={20} />} label="General Settings" active={activeTab === 'settings'} onClick={() => { setActiveTab('settings'); setIsSidebarOpen(false); }} />
                 </nav>
 
                 <button onClick={handleLogout} style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '12px', width: '100%', borderRadius: '10px', cursor: 'pointer', position: 'absolute', bottom: '30px', left: '20px', width: 'calc(100% - 40px)' }}>
@@ -1167,15 +1216,18 @@ const AdminDashboard = () => {
                 </button>
             </aside>
 
+            {/* Sidebar Overlay (Mobile) */}
+            {isSidebarOpen && <div onClick={() => setIsSidebarOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 4200 }} />}
+
             {/* Main Content */}
-            <main style={{ marginLeft: '260px', flex: 1, padding: '40px', maxWidth: '1200px' }}>
+            <main className="admin-main" style={{ marginLeft: '260px', flex: 1, padding: '40px', maxWidth: '1200px', transition: 'margin 0.3s ease' }}>
                 {message && (
                     <div style={{
                         position: 'fixed',
                         top: '20px',
                         left: '50%',
                         transform: 'translateX(-50%)',
-                        background: message.toLowerCase().includes('error') ? '#ef4444' : '#10b981',
+                        background: message.toLowerCase().includes('error') ? 'var(--secondary)' : 'var(--success)',
                         color: 'white',
                         padding: '12px 24px',
                         borderRadius: '12px',
@@ -1189,13 +1241,6 @@ const AdminDashboard = () => {
                     }}>
                         {message.toLowerCase().includes('error') ? <X size={18} /> : <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '50%', padding: '2px' }}><Plus size={16} style={{ transform: 'rotate(45deg)' }} /></div>}
                         {message}
-                        <style>{`
-                            @keyframes slideDown {
-                                0% { transform: translate(-50%, -100%); opacity: 0; }
-                                80% { transform: translate(-50%, 10px); }
-                                100% { transform: translate(-50%, 0); opacity: 1; }
-                            }
-                        `}</style>
                     </div>
                 )}
 
@@ -1205,6 +1250,52 @@ const AdminDashboard = () => {
                 {activeTab === 'orderTypes' && <OrderTypeManager />}
                 {activeTab === 'payment' && <PaymentSettings />}
                 {activeTab === 'settings' && <StoreGeneralSettings />}
+
+                <style>{`
+                    @keyframes slideDown {
+                        0% { transform: translate(-50%, -100%); opacity: 0; }
+                        80% { transform: translate(-50%, 10px); }
+                        100% { transform: translate(-50%, 0); opacity: 1; }
+                    }
+
+                    @keyframes spin {
+                        to { transform: rotate(360deg); }
+                    }
+
+                    .spinner-loader {
+                        width: 24px;
+                        height: 24px;
+                        border: 3px solid rgba(0, 132, 68, 0.2);
+                        border-top-color: var(--primary);
+                        border-radius: 50%;
+                        animation: spin 0.8s linear infinite;
+                    }
+
+                    @media (max-width: 1024px) {
+                        .admin-sidebar {
+                            transform: translateX(-100%);
+                        }
+                        .admin-sidebar.open {
+                            transform: translateX(0);
+                        }
+                        .admin-main {
+                            margin-left: 0 !important;
+                            padding: 80px 20px 40px !important;
+                        }
+                        .mobile-only-flex {
+                            display: flex !important;
+                        }
+                        .mobile-only-block {
+                            display: block !important;
+                        }
+                    }
+
+                    @media (min-width: 1025px) {
+                        .mobile-only-flex, .mobile-only-block {
+                            display: none !important;
+                        }
+                    }
+                `}</style>
             </main>
         </div>
     );

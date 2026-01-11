@@ -1,4 +1,4 @@
--- Supabase Schema for Oesters Cafe and Resto
+-- Supabase Schema for Babalicious Lechon
 -- This script is idempotent (safe to run multiple times)
 
 -- Enable UUID extension
@@ -7,12 +7,12 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- 1. Store Settings Table
 CREATE TABLE IF NOT EXISTS store_settings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    store_name TEXT NOT NULL DEFAULT 'Oesters Cafe and Resto',
+    store_name TEXT NOT NULL DEFAULT 'Babalicious Lechon',
     address TEXT,
     contact TEXT,
     logo_url TEXT,
     banner_images JSONB DEFAULT '[]',
-    open_time TIME DEFAULT '16:00',
+    open_time TIME DEFAULT '08:00',
     close_time TIME DEFAULT '01:00',
     manual_status TEXT DEFAULT 'auto',
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -72,8 +72,9 @@ CREATE TABLE IF NOT EXISTS orders (
     customer_details JSONB NOT NULL, -- {name, phone, tableNumber, address, etc}
     items JSONB NOT NULL,            -- Array of strings or object summaries
     total_amount DECIMAL(10, 2) NOT NULL,
+    email TEXT,
     status TEXT DEFAULT 'Pending'    -- Pending, Preparing, Ready, Completed, Cancelled
 );
 
 -- Initial Data (Optional)
--- INSERT INTO store_settings (store_name, contact) VALUES ('Oesters Cafe and Resto', '09563713967');
+-- INSERT INTO store_settings (store_name, contact) VALUES ('Babalicious Lechon', '09153441453 | 09817614423');

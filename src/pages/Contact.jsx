@@ -5,12 +5,12 @@ import { supabase } from '../supabaseClient';
 
 const Contact = () => {
     const [storeSettings, setStoreSettings] = useState({
-        store_name: 'Oesters',
+        store_name: 'Babalicious Lechon',
         address: 'Philippines',
-        contact: '09563713967',
+        contact: '09153441453 | 09817614423',
         open_time: '10:00',
         close_time: '01:00',
-        logo_url: '/logo.png'
+        logo_url: '/logo.jpg'
     });
 
     useEffect(() => {
@@ -32,16 +32,13 @@ const Contact = () => {
 
     return (
         <div className="page-wrapper">
-            <header className="app-header">
+            <header className="app-header" style={{ position: 'sticky', top: 0, zIndex: 1200, background: 'white', borderBottom: 'none' }}>
                 <div className="container header-container">
                     <Link to="/" className="brand">
-                        <img src={storeSettings.logo_url || "/logo.png"} alt="Oesters Logo" style={{ height: '50px' }} />
-
+                        <img src={storeSettings.logo_url || "/logo.jpg"} alt="Babalicious Lechon Logo" style={{ height: '60px' }} />
                     </Link>
-                    <nav className="header-nav" style={{ display: 'flex', gap: '20px' }}>
+                    <nav className="header-nav" style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                         <Link to="/" className="nav-link">Home</Link>
-
-                        <Link to="/contact" className="nav-link">Contact</Link>
                     </nav>
                 </div>
             </header>
@@ -89,11 +86,11 @@ const Contact = () => {
                     <h2 style={{ fontSize: '2rem', marginBottom: '20px' }}>Stay Connected</h2>
                     <p style={{ marginBottom: '40px', color: 'rgba(255,255,255,0.8)' }}>Follow us on social media for daily specials and events.</p>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
-                        <a href="https://www.facebook.com/oesterscafeandresto" target="_blank" rel="noopener noreferrer" style={{ background: 'white', color: 'var(--primary)', padding: '15px 30px', borderRadius: '50px', textDecoration: 'none', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <a href="https://www.facebook.com/babaliciouslechon" target="_blank" rel="noopener noreferrer" style={{ background: 'white', color: 'var(--primary)', padding: '15px 30px', borderRadius: '50px', textDecoration: 'none', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <Facebook size={20} />
-                            Facebook
+                            facebook.com/babaliciouslechon
                         </a>
-                        <a href="mailto:contact@oesters.com" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', padding: '15px 30px', borderRadius: '50px', textDecoration: 'none', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <a href="mailto:contact@babaliciouslechon.com" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', padding: '15px 30px', borderRadius: '50px', textDecoration: 'none', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <Mail size={20} />
                             Email Us
                         </a>

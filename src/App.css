@@ -1,25 +1,28 @@
 /* Global Styles */
 
 :root {
-  --primary: #D9232D;
-  --primary-dark: #B01C24;
-  --primary-light: #E85A60;
-  --accent: #FFB400;
-  --bg: #FDF8F5;
+  --primary: #800000;
+  --primary-dark: #500000;
+  --primary-light: #A00000;
+  --accent: #FFD100;
+  --secondary: #FFD100;
+  --bg: #FFFFFF;
   --card-bg: #ffffff;
-  --text: #2C1810;
-  --text-muted: #6B5D57;
-  --error: #ef4444;
-  --success: #10b981;
-  --border: rgba(166, 61, 64, 0.1);
-  --radius: 16px;
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --text: #1A1A1A;
+  --text-muted: #5C5C5C;
+  --error: #CC0000;
+  --success: #008444;
+  --border: rgba(128, 0, 0, 0.1);
+  --radius: 24px;
+  --shadow: 0 4px 12px rgba(128, 0, 0, 0.05);
+  --shadow-lg: 0 16px 32px rgba(128, 0, 0, 0.15);
+  --font-brand: 'Luckiest Guy', cursive;
+  --font-main: 'Fredoka', sans-serif;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-main);
   background-color: var(--bg);
   color: var(--text);
   line-height: 1.6;
@@ -62,9 +65,8 @@ body {
 }
 
 .brand-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-family: var(--font-brand);
+  font-size: 1.8rem;
   color: var(--primary);
   line-height: 1;
 }
@@ -96,7 +98,7 @@ body {
 
 /* Hero Section */
 .hero-section {
-  padding: 80px 0;
+  padding: 60px 0;
   background: var(--primary);
   color: #fff;
   position: relative;
@@ -112,44 +114,54 @@ body {
 
 .hero-content {
   text-align: left;
+  padding: 40px 0;
 }
 
 .hero-content h1 {
-  font-family: 'Playfair Display', serif;
-  font-size: 3.5rem;
+  font-family: var(--font-brand);
+  font-size: 4rem;
   line-height: 1.1;
   margin-bottom: 24px;
   color: #fff;
+  text-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
 }
 
 .hero-content p {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.9);
+  font-family: var(--font-main);
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
   margin-bottom: 40px;
-  max-width: 500px;
+  max-width: 550px;
 }
 
 .hero-image-container {
   width: 100%;
-  border-radius: 30px;
+  border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  aspect-ratio: 4/3;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.25);
+  /* aspect-ratio: 3/2; Removed to allow full image visibility */
   position: relative;
+  /* Height will be determined by content or need min-height */
+  min-height: 300px;
+  /* Fallback */
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  background-color: #000;
+  /* Dark background for letterboxing if happens */
 }
 
 .hero-image {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
 }
 
 /* Menu Styles */
 .menu-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 20px;
-  padding: 30px 0;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 30px;
+  padding: 40px 0;
 }
 
 .menu-item-card {
@@ -299,7 +311,8 @@ body {
   }
 
   .hero-image-container {
-    aspect-ratio: 16/9;
+    /* aspect-ratio: 16/9; Removed */
+    min-height: 200px;
   }
 }
 
