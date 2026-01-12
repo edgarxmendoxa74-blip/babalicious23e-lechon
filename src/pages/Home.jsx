@@ -311,6 +311,8 @@ const Home = () => {
             return `${item.name} ${v} - ₱${item.finalPrice * item.quantity}`;
         }).join('\n');
 
+        const hasWholeLechon = cart.some(item => (item.category_id || item.category) === 'lechon');
+
         const message = `
 Order:
 ${orderListStr}
@@ -321,9 +323,9 @@ Date and Time: ${customerDetails.date_time}
 Delivery Address: ${customerDetails.address || 'N/A (Pickup)'}
 Nearest Landmark: ${customerDetails.landmark || 'N/A'}
 Contact no.: ${customerDetails.contact_number}
-Freebie: ${customerDetails.freebie}
+${hasWholeLechon ? `Freebie: ${customerDetails.freebie}` : ''}
 
-Payment Method: ${paymentMethod}
+Payment Method: ${paymentSettings.find(m => m.id === paymentMethod)?.name || paymentMethod}
 `.trim();
 
         const messengerUrl = `https://m.me/babaliciouslechon?text=${encodeURIComponent(message)}`;
@@ -486,7 +488,6 @@ Payment Method: ${paymentMethod}
                                         fontSize: '1rem',
                                         fontWeight: 700,
                                         fontFamily: 'var(--font-brand)',
-                                        border: 'none',
                                         background: activeCategory === cat.id ? 'var(--primary)' : 'white',
                                         color: activeCategory === cat.id ? 'white' : 'var(--text-dark)',
                                         cursor: 'pointer',
@@ -697,20 +698,23 @@ Payment Method: ${paymentMethod}
                             <div style={{ marginBottom: '30px' }}>
                                 {/* Payment Method */}
                                 <div style={{ marginBottom: '30px' }}>
-                                    <label style={{ fontWeight: 700, fontSize: '1rem', display: 'block', marginBottom: '15px' }}>Payment Method</label>
+                                    <label style={{ fontWeight: 700, fontSize: '1rem', display: 'block', marginBottom: '15px' }}>Payment Method (Down Payment Required)</label>
+
+                                    <div style={{
+                                        margin: '0 0 20px 0',
+                                        padding: '15px',
+                                        background: '#fff9db',
+                                        border: '1px solid #fab005',
+                                        borderRadius: '15px',
+                                        color: '#862e13',
+                                        fontSize: '0.95rem',
+                                        fontWeight: 600,
+                                        lineHeight: '1.4'
+                                    }}>
+                                        ⚠️ To confirm your order, a minimum payment of ₱1,000 is required via GCash or PayMaya. Please send a screenshot of the payment along with your complete order details through Messenger.
+                                    </div>
+
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', marginBottom: '20px' }}>
-                                        <button
-                                            onClick={() => setPaymentMethod('Cash/COD')}
-                                            style={{
-                                                padding: '15px', borderRadius: '15px', border: '2px solid',
-                                                borderColor: paymentMethod === 'Cash/COD' ? 'var(--primary)' : '#e2e8f0',
-                                                background: paymentMethod === 'Cash/COD' ? '#f0f9ff' : 'white',
-                                                cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s'
-                                            }}
-                                        >
-                                            <div style={{ fontSize: '1.5rem', marginBottom: '5px' }}>💵</div>
-                                            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--primary)' }}>Cash / COD</div>
-                                        </button>
                                         {paymentSettings.map(method => (
                                             <button
                                                 key={method.id}
@@ -729,7 +733,7 @@ Payment Method: ${paymentMethod}
                                     </div>
 
                                     {/* Payment Details Area */}
-                                    {paymentMethod && paymentMethod !== 'Cash/COD' && (
+                                    {paymentMethod && (
                                         <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
                                             {paymentSettings.find(m => m.id === paymentMethod) ? (
                                                 (() => {
@@ -832,23 +836,25 @@ Payment Method: ${paymentMethod}
                                                 </div>
 
                                                 {/* Freebie Selection */}
-                                                <div>
-                                                    <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 600 }}>Freebie</label>
-                                                    <div style={{ display: 'flex', gap: '10px' }}>
-                                                        <button
-                                                            onClick={() => setCustomerDetails({ ...customerDetails, freebie: 'Igado' })}
-                                                            style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid var(--primary)', background: customerDetails.freebie === 'Igado' ? 'var(--primary)' : 'white', color: customerDetails.freebie === 'Igado' ? 'white' : 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
-                                                        >
-                                                            Igado
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setCustomerDetails({ ...customerDetails, freebie: 'Dinuguan' })}
-                                                            style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid var(--primary)', background: customerDetails.freebie === 'Dinuguan' ? 'var(--primary)' : 'white', color: customerDetails.freebie === 'Dinuguan' ? 'white' : 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
-                                                        >
-                                                            Dinuguan
-                                                        </button>
+                                                {cart.some(item => (item.category_id || item.category) === 'lechon') && (
+                                                    <div>
+                                                        <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 600 }}>Freebie Choice (Whole Lechon Only)</label>
+                                                        <div style={{ display: 'flex', gap: '10px' }}>
+                                                            <button
+                                                                onClick={() => setCustomerDetails({ ...customerDetails, freebie: 'Igado' })}
+                                                                style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid var(--primary)', background: customerDetails.freebie === 'Igado' ? 'var(--primary)' : 'white', color: customerDetails.freebie === 'Igado' ? 'white' : 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
+                                                            >
+                                                                Igado
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setCustomerDetails({ ...customerDetails, freebie: 'Dinuguan' })}
+                                                                style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid var(--primary)', background: customerDetails.freebie === 'Dinuguan' ? 'var(--primary)' : 'white', color: customerDetails.freebie === 'Dinuguan' ? 'white' : 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
+                                                            >
+                                                                Dinuguan
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                )}
 
                                             </div>
                                         </div>
@@ -964,7 +970,7 @@ Payment Method: ${paymentMethod}
             {/* Same Cart Sidebar as before */}
             {
                 isCartOpen && (
-                    <div style={{ position: 'fixed', top: 0, right: 0, width: '450px', height: '100vh', background: 'white', boxShadow: '-10px 0 30px rgba(0,0,0,0.1)', zIndex: 1100, padding: '30px', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ position: 'fixed', top: 0, right: 0, width: '100%', maxWidth: '450px', height: '100vh', background: 'white', boxShadow: '-10px 0 30px rgba(0,0,0,0.1)', zIndex: 2100, padding: '20px', display: 'flex', flexDirection: 'column' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}><h2>Your Cart</h2><button onClick={() => setIsCartOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={24} /></button></div>
                         <div style={{ flex: 1, overflowY: 'auto' }}>
                             {cart.map(item => (

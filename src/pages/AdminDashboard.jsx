@@ -628,6 +628,7 @@ const AdminDashboard = () => {
     const PaymentSettings = () => {
         const [editingMethodId, setEditingMethodId] = useState(null);
         const [showAddMethod, setShowAddMethod] = useState(false);
+        const [newMethodQr, setNewMethodQr] = useState('');
 
         const handleSaveMethod = async (e, methodId) => {
             e.preventDefault();
@@ -651,12 +652,13 @@ const AdminDashboard = () => {
                 name: formData.get('name'),
                 account_number: formData.get('accountNumber'),
                 account_name: formData.get('accountName'),
-                qr_url: ''
+                qr_url: newMethodQr
             };
             const { data, error } = await supabase.from('payment_settings').insert([newMethod]).select().single();
             if (error) { console.error(error); showMessage(`Error adding: ${error.message}`); return; }
             setPaymentSettings([...paymentSettings, data]);
             setShowAddMethod(false);
+            setNewMethodQr('');
             showMessage('Payment method added!');
         };
 
@@ -688,6 +690,18 @@ const AdminDashboard = () => {
                             <input name="name" placeholder="Method Name (e.g. Bank Transfer, GCash)" required style={inputStyle} />
                             <input name="accountNumber" placeholder="Account Number" required style={inputStyle} />
                             <input name="accountName" placeholder="Account Name" required style={inputStyle} />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>QR Code Image (Optional)</label>
+                                {newMethodQr && <img src={newMethodQr} style={{ width: '100px', height: '100px', borderRadius: '10px', objectFit: 'cover', border: '1px solid #ddd' }} />}
+                                <input type="file" accept="image/*" onChange={(e) => {
+                                    const file = e.target.files[0];
+                                    if (file) {
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => setNewMethodQr(reader.result);
+                                        reader.readAsDataURL(file);
+                                    }
+                                }} style={inputStyle} />
+                            </div>
                             <button type="submit" className="btn-primary">Save Method</button>
                         </form>
                     </div>
@@ -1211,7 +1225,7 @@ const AdminDashboard = () => {
                     <SidebarItem icon={<LayoutDashboard size={20} />} label="General Settings" active={activeTab === 'settings'} onClick={() => { setActiveTab('settings'); setIsSidebarOpen(false); }} />
                 </nav>
 
-                <button onClick={handleLogout} style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '12px', width: '100%', borderRadius: '10px', cursor: 'pointer', position: 'absolute', bottom: '30px', left: '20px', width: 'calc(100% - 40px)' }}>
+                <button onClick={handleLogout} style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '12px', borderRadius: '10px', cursor: 'pointer', position: 'absolute', bottom: '30px', left: '20px', width: 'calc(100% - 40px)' }}>
                     <LogOut size={20} /> Sign Out
                 </button>
             </aside>
