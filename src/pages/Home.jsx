@@ -176,6 +176,7 @@ const Home = () => {
         address: '',
         landmark: '',
         date_time: '',
+        email: '',
         freebie: 'Igado' // Default selection
     });
 
@@ -281,6 +282,8 @@ const Home = () => {
             order_type: orderType,
             payment_method: paymentMethod,
             customer_details: customerDetails,
+            full_name: customerDetails.name,
+            email: customerDetails.email || `${Date.now()}@no-email.com`, // Fallback for NOT NULL constraint
             items: itemDetails,
             total_amount: cartTotal,
             status: 'Pending'
@@ -833,6 +836,12 @@ Payment Method: ${paymentSettings.find(m => m.id === paymentMethod)?.name || pay
                                                 <div>
                                                     <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 600 }}>Contact no.</label>
                                                     <input type="tel" value={customerDetails.contact_number} onChange={(e) => setCustomerDetails({ ...customerDetails, contact_number: e.target.value })} style={{ padding: '12px', width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0' }} placeholder="09xxxxxxxxx" />
+                                                </div>
+
+                                                {/* Email */}
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 600 }}>Email Address</label>
+                                                    <input type="email" value={customerDetails.email} onChange={(e) => setCustomerDetails({ ...customerDetails, email: e.target.value })} style={{ padding: '12px', width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0' }} placeholder="your@email.com" />
                                                 </div>
 
                                                 {/* Freebie Selection */}

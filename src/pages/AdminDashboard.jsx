@@ -930,10 +930,18 @@ const AdminDashboard = () => {
                                     </div>
                                 </div>
                                 <div style={{ marginBottom: '10px', fontSize: '0.95rem' }}>
-                                    <strong>{order.customer_details?.name}</strong> • {order.payment_method}
-                                    {order.customer_details?.phone && <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{order.customer_details.phone}</div>}
+                                    <strong>{order.customer_details?.name || order.full_name || 'No Name'}</strong> • {order.payment_method}
+                                    {(order.customer_details?.contact_number || order.customer_details?.phone || order.phone) && (
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                            {order.customer_details?.contact_number || order.customer_details?.phone || order.phone}
+                                        </div>
+                                    )}
                                     {order.customer_details?.tableNumber && <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Table: {order.customer_details.tableNumber}</div>}
-                                    {order.customer_details?.address && <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Address: {order.customer_details.address}</div>}
+                                    {(order.customer_details?.address || order.address) && (
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                            Address: {order.customer_details?.address || order.address}
+                                        </div>
+                                    )}
                                 </div>
                                 <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '12px', fontSize: '0.9rem' }}>
                                     {order.items.map((item, i) => (
