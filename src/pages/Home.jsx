@@ -278,12 +278,13 @@ const Home = () => {
         });
 
         const newOrder = {
+            id: crypto.randomUUID(),
             order_type: orderType,
             payment_method: paymentMethod,
-            customer_details: customerDetails, // Still send for flexibility
-            full_name: customerDetails.name,   // Match db column
-            phone: customerDetails.contact_number, // Match db column
-            address: customerDetails.address,      // Match db column
+            customer_details: customerDetails,
+            full_name: customerDetails.name,
+            phone: customerDetails.contact_number,
+            address: customerDetails.address,
             items: itemDetails,
             total_amount: cartTotal,
             status: 'Pending'

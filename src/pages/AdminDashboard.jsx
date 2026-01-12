@@ -198,7 +198,10 @@ const AdminDashboard = () => {
             let finalItem;
             if (editingItem.id === 'new') {
                 if (!itemData.category_id) { showMessage('Please select a category first.'); return; }
-                const { data, error } = await supabase.from('menu_items').insert([itemData]).select().single();
+                const { data, error } = await supabase.from('menu_items').insert([{
+                    ...itemData,
+                    id: crypto.randomUUID()
+                }]).select().single();
                 if (error) { console.error(error); showMessage(`Error saving: ${error.message}`); return; }
                 finalItem = data;
                 setItems([...items, finalItem]);
@@ -664,6 +667,7 @@ const AdminDashboard = () => {
             e.preventDefault();
             const formData = new FormData(e.target);
             const newMethod = {
+                id: crypto.randomUUID(),
                 name: formData.get('name'),
                 account_number: formData.get('accountNumber'),
                 account_name: formData.get('accountName'),
