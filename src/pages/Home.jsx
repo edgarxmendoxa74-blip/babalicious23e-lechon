@@ -420,7 +420,7 @@ Payment Method: ${paymentSettings.find(m => m.id === paymentMethod)?.name || pay
                                 <div style={{ background: 'var(--accent)', padding: '8px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <Phone size={20} color="var(--primary-dark)" />
                                 </div>
-                                <span>09153441453</span>
+                                <span>{storeSettings.contact}</span>
                             </div>
                         </div>
                     </div>
