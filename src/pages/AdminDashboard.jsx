@@ -833,9 +833,10 @@ const AdminDashboard = () => {
                         <div class="divider"></div>
                         <div>
                             <strong>OR#:</strong> ${order.id.toString().slice(-6).toUpperCase()}<br>
-                            <strong>Date:</strong> ${new Date(order.timestamp).toLocaleString()}<br>
+                            <strong>Date:</strong> ${new Date(order.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}<br>
                             <strong>Type:</strong> ${(order.order_type || 'Dine-in').toUpperCase()}<br>
                             <strong>Cust:</strong> ${order.customer_details?.name}
+                            ${order.customer_details?.date_time ? `<br><strong>Req. Time:</strong> ${new Date(order.customer_details.date_time).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}` : ''}
                             ${order.customer_details?.table_number ? `<br><strong>Table:</strong> ${order.customer_details.table_number}` : ''}
                         </div>
                         <div class="divider"></div>
@@ -893,7 +894,9 @@ const AdminDashboard = () => {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
                                     <div>
                                         <span style={{ fontWeight: 800, color: 'var(--primary)', marginRight: '10px' }}>{(order.order_type || 'N/A').toUpperCase()}</span>
-                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{new Date(order.timestamp).toLocaleString()}</span>
+                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                            Placed: {new Date(order.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
+                                        </span>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -931,6 +934,11 @@ const AdminDashboard = () => {
                                 </div>
                                 <div style={{ marginBottom: '10px', fontSize: '0.95rem' }}>
                                     <strong>{order.customer_details?.name || order.full_name || 'No Name'}</strong> • {order.payment_method}
+                                    {order.customer_details?.date_time && (
+                                        <div style={{ fontSize: '0.9rem', color: '#0369a1', fontWeight: 700, marginTop: '4px' }}>
+                                            Delivery Time: {new Date(order.customer_details.date_time).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
+                                        </div>
+                                    )}
                                     {(order.customer_details?.contact_number || order.customer_details?.phone || order.phone) && (
                                         <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                                             {order.customer_details?.contact_number || order.customer_details?.phone || order.phone}

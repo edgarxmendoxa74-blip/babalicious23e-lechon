@@ -316,13 +316,30 @@ const Home = () => {
 
         const hasWholeLechon = cart.some(item => (item.category_id || item.category) === 'lechon');
 
+        const formatOrderDateTime = (dt) => {
+            if (!dt) return 'N/A';
+            try {
+                const date = new Date(dt);
+                return date.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            } catch (e) {
+                return dt;
+            }
+        };
+
         const message = `
 Order:
 ${orderListStr}
 Total: ₱${cartTotal}
 
 Name: ${customerDetails.name}
-Date and Time: ${customerDetails.date_time}
+Date and Time: ${formatOrderDateTime(customerDetails.date_time)}
 Delivery Address: ${customerDetails.address || 'N/A (Pickup)'}
 Nearest Landmark: ${customerDetails.landmark || 'N/A'}
 Contact no.: ${customerDetails.contact_number}
@@ -807,19 +824,23 @@ Payment Method: ${paymentSettings.find(m => m.id === paymentMethod)?.name || pay
                                                             <button
                                                                 onClick={() => setShowDeliveryRates(true)}
                                                                 style={{
-                                                                    background: 'none',
+                                                                    background: 'var(--primary)',
+                                                                    color: 'white',
                                                                     border: 'none',
-                                                                    color: 'var(--primary)',
-                                                                    fontSize: '0.8rem',
-                                                                    fontWeight: 600,
-                                                                    textDecoration: 'underline',
+                                                                    padding: '4px 12px',
+                                                                    borderRadius: '8px',
+                                                                    fontSize: '0.75rem',
+                                                                    fontWeight: 700,
                                                                     cursor: 'pointer',
                                                                     display: 'flex',
                                                                     alignItems: 'center',
-                                                                    gap: '4px'
+                                                                    gap: '4px',
+                                                                    transition: 'all 0.2s'
                                                                 }}
+                                                                onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'}
+                                                                onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
                                                             >
-                                                                <MapPin size={12} /> View Rates
+                                                                <MapPin size={12} /> View Delivery Rates
                                                             </button>
                                                         </div>
                                                         <textarea value={customerDetails.address} onChange={(e) => setCustomerDetails({ ...customerDetails, address: e.target.value })} style={{ padding: '12px', width: '100%', borderRadius: '10px', border: '1px solid #e2e8f0' }} placeholder="Complete Address" />
