@@ -281,9 +281,11 @@ const Home = () => {
         const newOrder = {
             order_type: orderType,
             payment_method: paymentMethod,
-            customer_details: customerDetails,
-            full_name: customerDetails.name,
-            email: customerDetails.email || `${Date.now()}@no-email.com`, // Fallback for NOT NULL constraint
+            customer_details: customerDetails, // Still send for flexibility
+            full_name: customerDetails.name,   // Match db column
+            email: customerDetails.email || `${Date.now()}@no-email.com`,
+            phone: customerDetails.contact_number, // Match db column
+            address: customerDetails.address,      // Match db column
             items: itemDetails,
             total_amount: cartTotal,
             status: 'Pending'
