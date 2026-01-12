@@ -314,8 +314,6 @@ const Home = () => {
             return `${item.name} ${v} - ₱${item.finalPrice * item.quantity}`;
         }).join('\n');
 
-        const hasWholeLechon = cart.some(item => (item.category_id || item.category) === 'lechon');
-
         const formatOrderDateTime = (dt) => {
             if (!dt) return 'N/A';
             try {
@@ -332,6 +330,7 @@ const Home = () => {
                 return dt;
             }
         };
+
         const hasWholeLechon = cart.some(item =>
             (item.category_id || item.category) === 'lechon' ||
             item.name?.toLowerCase().includes('whole lechon')
