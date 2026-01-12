@@ -437,11 +437,22 @@ const AdminDashboard = () => {
         const addCategory = async (e) => {
             e.preventDefault();
             if (!newCat.trim()) return;
-            const { data, error } = await supabase.from('categories').insert([{ name: newCat, sort_order: categories.length }]).select().single();
-            if (error) { console.error(error); showMessage(`Error adding category: ${error.message}`); return; }
-            setCategories([...categories, data]);
-            setNewCat('');
-            showMessage('Category added!');
+            try {
+                const { data, error } = await supabase
+                    .from('categories')
+                    .insert([{ name: newCat.trim(), sort_order: categories.length }])
+                    .select();
+
+                if (error) throw error;
+                if (data && data.length > 0) {
+                    setCategories([...categories, data[0]]);
+                    setNewCat('');
+                    showMessage('Category added!');
+                }
+            } catch (err) {
+                console.error('Error adding category:', err);
+                showMessage(`Error adding category: ${err.message}`);
+            }
         };
 
         const startEdit = (cat) => {
