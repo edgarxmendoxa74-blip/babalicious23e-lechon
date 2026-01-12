@@ -440,7 +440,11 @@ const AdminDashboard = () => {
             try {
                 const { data, error } = await supabase
                     .from('categories')
-                    .insert([{ name: newCat.trim(), sort_order: categories.length }])
+                    .insert([{
+                        id: crypto.randomUUID(),
+                        name: newCat.trim(),
+                        sort_order: categories.length
+                    }])
                     .select();
 
                 if (error) throw error;
