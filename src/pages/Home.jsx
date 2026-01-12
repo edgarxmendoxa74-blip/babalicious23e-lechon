@@ -332,6 +332,12 @@ const Home = () => {
                 return dt;
             }
         };
+        const hasWholeLechon = cart.some(item =>
+            (item.category_id || item.category) === 'lechon' ||
+            item.name?.toLowerCase().includes('whole lechon')
+        );
+
+        const freebieText = hasWholeLechon ? `\nFreebie Choice: ${customerDetails.freebie || 'Not Selected'}` : '';
 
         const message = `
 Order:
@@ -342,8 +348,7 @@ Name: ${customerDetails.name}
 Date and Time: ${formatOrderDateTime(customerDetails.date_time)}
 Delivery Address: ${customerDetails.address || 'N/A (Pickup)'}
 Nearest Landmark: ${customerDetails.landmark || 'N/A'}
-Contact no.: ${customerDetails.contact_number}
-${hasWholeLechon ? `Freebie: ${customerDetails.freebie}` : ''}
+Contact no.: ${customerDetails.contact_number}${freebieText}
 
 Payment Method: ${paymentSettings.find(m => m.id === paymentMethod)?.name || paymentMethod}
 `.trim();
@@ -351,7 +356,7 @@ Payment Method: ${paymentSettings.find(m => m.id === paymentMethod)?.name || pay
         const messengerUrl = `https://m.me/babaliciouslechon?text=${encodeURIComponent(message)}`;
         window.open(messengerUrl, '_blank');
 
-        // setCart([]); 
+        // setCart([]);
         setIsCheckoutOpen(false);
     };
 
@@ -860,25 +865,43 @@ Payment Method: ${paymentSettings.find(m => m.id === paymentMethod)?.name || pay
                                                 </div>
 
                                                 {/* Freebie Selection */}
-                                                {cart.some(item => (item.category_id || item.category) === 'lechon') && (
-                                                    <div>
-                                                        <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', fontWeight: 600 }}>Freebie Choice (Whole Lechon Only)</label>
-                                                        <div style={{ display: 'flex', gap: '10px' }}>
-                                                            <button
-                                                                onClick={() => setCustomerDetails({ ...customerDetails, freebie: 'Igado' })}
-                                                                style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid var(--primary)', background: customerDetails.freebie === 'Igado' ? 'var(--primary)' : 'white', color: customerDetails.freebie === 'Igado' ? 'white' : 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
-                                                            >
-                                                                Igado
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setCustomerDetails({ ...customerDetails, freebie: 'Dinuguan' })}
-                                                                style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid var(--primary)', background: customerDetails.freebie === 'Dinuguan' ? 'var(--primary)' : 'white', color: customerDetails.freebie === 'Dinuguan' ? 'white' : 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
-                                                            >
-                                                                Dinuguan
-                                                            </button>
+                                                {cart.some(item =>
+                                                    (item.category_id || item.category) === 'lechon' ||
+                                                    item.name?.toLowerCase().includes('whole lechon')
+                                                ) && (
+                                                        <div>
+                                                            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '10px', fontWeight: 700, color: 'var(--primary)' }}>
+                                                                🎁 Choose Your Freebie (Whole Lechon Only)
+                                                            </label>
+                                                            <div style={{ display: 'flex', gap: '10px' }}>
+                                                                {['Igado', 'Dinuguan'].map(option => (
+                                                                    <button
+                                                                        key={option}
+                                                                        onClick={() => setCustomerDetails({ ...customerDetails, freebie: option })}
+                                                                        style={{
+                                                                            flex: 1,
+                                                                            padding: '12px',
+                                                                            borderRadius: '12px',
+                                                                            border: '2px solid',
+                                                                            borderColor: customerDetails.freebie === option ? 'var(--primary)' : '#e2e8f0',
+                                                                            background: customerDetails.freebie === option ? '#f0f9ff' : 'white',
+                                                                            color: customerDetails.freebie === option ? 'var(--primary)' : 'var(--text-muted)',
+                                                                            cursor: 'pointer',
+                                                                            fontWeight: 700,
+                                                                            transition: 'all 0.2s',
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center',
+                                                                            gap: '8px'
+                                                                        }}
+                                                                    >
+                                                                        {customerDetails.freebie === option && <Star size={16} fill="var(--primary)" />}
+                                                                        {option}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                )}
+                                                    )}
 
                                             </div>
                                         </div>

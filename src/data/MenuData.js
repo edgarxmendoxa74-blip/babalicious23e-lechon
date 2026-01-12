@@ -25,7 +25,8 @@ export const menuItems = [
             { name: 'X Jumbo 2', weight: '45-47 kl', pax: 80, price: 17000 },
             { name: 'Super Jumbo (Small)', weight: '49-51 kl', pax: 90, price: 18000 },
             { name: 'Super Jumbo (Large)', weight: '53-55 kl', pax: 100, price: 19000 }
-        ]
+        ],
+        freebies: ['Igado', 'Dinuguan']
     },
     {
         id: 'lechon-belly',
