@@ -18,6 +18,7 @@
   --shadow-lg: 0 16px 32px rgba(128, 0, 0, 0.15);
   --font-brand: 'Luckiest Guy', cursive;
   --font-main: 'Fredoka', sans-serif;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -169,19 +170,26 @@ body {
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow);
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
   border: 1px solid var(--border);
 }
 
 .menu-item-card:hover {
-  transform: translateY(-8px);
+  transform: translateY(-12px);
   box-shadow: var(--shadow-lg);
 }
 
 .menu-item-image {
   width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  transition: transform 0.5s ease;
+  background: #f8f8f8;
+}
+
+.menu-item-card:hover .menu-item-image {
+  transform: scale(1.05);
 }
 
 .menu-item-info {
@@ -273,7 +281,7 @@ body {
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
 
   to {
@@ -282,8 +290,38 @@ body {
   }
 }
 
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 .animate-fade-up {
-  animation: fadeInUp 0.8s ease forwards;
+  animation: fadeInUp 1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.animate-fade-in-right {
+  animation: fadeInRight 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 1s ease forwards;
 }
 
 /* Responsive */
@@ -311,7 +349,6 @@ body {
   }
 
   .hero-image-container {
-    /* aspect-ratio: 16/9; Removed */
     min-height: 200px;
   }
 }
@@ -319,5 +356,26 @@ body {
 @media (max-width: 900px) {
   .brand-text {
     display: none !important;
+  }
+}
+
+.social-buttons-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .social-buttons-container {
+    flex-direction: column;
+    padding: 0 20px;
+  }
+
+  .social-buttons-container a {
+    width: 100%;
+    max-width: 320px;
+    min-width: unset !important;
   }
 }

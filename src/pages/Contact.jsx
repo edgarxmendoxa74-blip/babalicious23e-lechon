@@ -82,15 +82,48 @@ const Contact = () => {
                 </div>
 
                 {/* Social Media Section */}
-                <div style={{ background: 'var(--primary)', color: 'white', borderRadius: '30px', padding: '60px', textAlign: 'center' }}>
-                    <h2 style={{ fontSize: '2rem', marginBottom: '20px' }}>Stay Connected</h2>
-                    <p style={{ marginBottom: '40px', color: 'rgba(255,255,255,0.8)' }}>Follow us on social media for daily specials and events.</p>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
-                        <a href="https://www.facebook.com/babaliciouslechon" target="_blank" rel="noopener noreferrer" style={{ background: 'white', color: 'var(--primary)', padding: '15px 30px', borderRadius: '50px', textDecoration: 'none', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ background: 'var(--primary)', color: 'white', borderRadius: '30px', padding: '60px 20px', textAlign: 'center' }}>
+                    <h2 style={{ fontSize: '2.5rem', marginBottom: '15px', fontFamily: 'var(--font-brand)' }}>Stay Connected</h2>
+                    <p style={{ marginBottom: '40px', color: 'rgba(255,255,255,0.9)', fontSize: '1.1rem' }}>Follow us on social media for daily specials and events.</p>
+                    <div className="social-buttons-container">
+                        <a href="https://www.facebook.com/babaliciouslechon" target="_blank" rel="noopener noreferrer" style={{
+                            background: 'white',
+                            color: 'var(--primary)',
+                            padding: '15px 30px',
+                            borderRadius: '50px',
+                            textDecoration: 'none',
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            minWidth: '280px',
+                            justifyContent: 'center',
+                            transition: 'transform 0.3s'
+                        }}
+                            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        >
                             <Facebook size={20} />
                             facebook.com/babaliciouslechon
                         </a>
-                        <a href="mailto:contact@babaliciouslechon.com" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', padding: '15px 30px', borderRadius: '50px', textDecoration: 'none', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <a href="mailto:contact@babaliciouslechon.com" style={{
+                            background: 'rgba(255,255,255,0.1)',
+                            color: 'white',
+                            border: '1px solid rgba(255,255,255,0.3)',
+                            padding: '15px 30px',
+                            borderRadius: '50px',
+                            textDecoration: 'none',
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            minWidth: '280px',
+                            justifyContent: 'center',
+                            transition: 'transform 0.3s'
+                        }}
+                            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        >
                             <Mail size={20} />
                             Email Us
                         </a>

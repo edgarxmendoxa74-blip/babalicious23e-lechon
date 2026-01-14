@@ -424,7 +424,7 @@ Payment Method: ${paymentSettings.find(m => m.id === paymentMethod)?.name || pay
                             </div>
                         </div>
                     </div>
-                    <div className="hero-image-container">
+                    <div className="hero-image-container animate-fade-in-right">
                         {(storeSettings.banner_images || []).length > 0 ? (
                             <>
                                 {(storeSettings.banner_images || []).map((url, i) => (
@@ -433,6 +433,8 @@ Payment Method: ${paymentSettings.find(m => m.id === paymentMethod)?.name || pay
                                         src={url}
                                         alt={`Hero Banner ${i + 1}`}
                                         className="hero-image"
+                                        fetchpriority={i === 0 ? "high" : "low"}
+                                        loading={i === 0 ? "eager" : "lazy"}
                                         style={{
                                             position: i === 0 ? 'relative' : 'absolute',
                                             top: 0,
@@ -443,14 +445,26 @@ Payment Method: ${paymentSettings.find(m => m.id === paymentMethod)?.name || pay
                                         }}
                                     />
                                 ))}
-                                <button onClick={prevBanner} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.7)', border: 'none', borderRadius: '50%', padding: '10px', cursor: 'pointer', zIndex: 10 }}><ChevronLeft size={24} color="var(--primary)" /></button>
-                                <button onClick={nextBanner} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.7)', border: 'none', borderRadius: '50%', padding: '10px', cursor: 'pointer', zIndex: 10 }}><ChevronRight size={24} color="var(--primary)" /></button>
+                                {(storeSettings.banner_images || []).length > 1 && (
+                                    <>
+                                        <button onClick={prevBanner} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.7)', border: 'none', borderRadius: '50%', padding: '10px', cursor: 'pointer', zIndex: 10 }}><ChevronLeft size={24} color="var(--primary)" /></button>
+                                        <button onClick={nextBanner} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.7)', border: 'none', borderRadius: '50%', padding: '10px', cursor: 'pointer', zIndex: 10 }}><ChevronRight size={24} color="var(--primary)" /></button>
+                                    </>
+                                )}
                             </>
                         ) : (
-                            <div style={{ padding: '100px', textAlign: 'center', opacity: 0.5 }}>
-                                <ImageIcon size={48} />
-                                <p>No banner images uploaded.</p>
-                            </div>
+                            <img
+                                src="/default_banner.jpg"
+                                alt="Authentic Filipino Lechon"
+                                className="hero-image"
+                                fetchpriority="high"
+                                loading="eager"
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover'
+                                }}
+                            />
                         )}
                     </div>
                 </div>
