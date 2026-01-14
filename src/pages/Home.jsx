@@ -261,7 +261,7 @@ const Home = () => {
             return;
         }
 
-        if (!paymentMethod) { alert('Please select a payment method.'); return; }
+        // if (!paymentMethod) { alert('Please select a payment method.'); return; }
 
         // --- SAVE ORDER TO SUPABASE ---
         // Format: "Item Name (Size) - Price"
@@ -350,7 +350,7 @@ Delivery Address: ${customerDetails.address || 'N/A (Pickup)'}
 Nearest Landmark: ${customerDetails.landmark || 'N/A'}
 Contact no.: ${customerDetails.contact_number}${freebieText}
 
-Payment Method: ${paymentSettings.find(m => m.id === paymentMethod)?.name || paymentMethod}
+Payment Method: ${paymentMethod ? (paymentSettings.find(m => m.id === paymentMethod)?.name || paymentMethod) : 'Not Selected (Pay via GCash)'}
 `.trim();
 
         const messengerUrl = `https://m.me/babaliciouslechon?text=${encodeURIComponent(message)}`;
@@ -735,9 +735,9 @@ Payment Method: ${paymentSettings.find(m => m.id === paymentMethod)?.name || pay
                             <h2 style={{ marginBottom: '30px', fontSize: '1.8rem', color: 'var(--primary)' }}>Checkout</h2>
 
                             <div style={{ marginBottom: '30px' }}>
-                                {/* Payment Method */}
+                                {/* Payment Method (Optional) */}
                                 <div style={{ marginBottom: '30px' }}>
-                                    <label style={{ fontWeight: 700, fontSize: '1rem', display: 'block', marginBottom: '15px' }}>Payment Method (Down Payment Required)</label>
+                                    <label style={{ fontWeight: 700, fontSize: '1.2rem', display: 'block', marginBottom: '15px', color: 'var(--primary)' }}>Payment via GCash (Optional)</label>
 
                                     <div style={{
                                         margin: '0 0 20px 0',
@@ -746,66 +746,44 @@ Payment Method: ${paymentSettings.find(m => m.id === paymentMethod)?.name || pay
                                         border: '1px solid #fab005',
                                         borderRadius: '15px',
                                         color: '#862e13',
-                                        fontSize: '0.95rem',
+                                        fontSize: '0.9rem',
                                         fontWeight: 600,
                                         lineHeight: '1.4'
                                     }}>
-                                        ⚠️ To confirm your order, a minimum payment of ₱1,000 is required via GCash or PayMaya. Please send a screenshot of the payment along with your complete order details through Messenger.
+                                        💡 You may send a down payment of at least ₱1,000 via GCash for faster order confirmation. Please send the screenshot via Messenger after placing your order.
                                     </div>
 
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', marginBottom: '20px' }}>
-                                        {paymentSettings.map(method => (
-                                            <button
-                                                key={method.id}
-                                                onClick={() => setPaymentMethod(method.id)}
-                                                style={{
-                                                    padding: '15px', borderRadius: '15px', border: '2px solid',
-                                                    borderColor: paymentMethod === method.id ? 'var(--primary)' : '#e2e8f0',
-                                                    background: paymentMethod === method.id ? '#f0f9ff' : 'white',
-                                                    cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s'
-                                                }}
-                                            >
-                                                <div style={{ fontSize: '1.5rem', marginBottom: '5px' }}>💳</div>
-                                                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--primary)' }}>{method.name}</div>
-                                            </button>
-                                        ))}
-                                    </div>
+                                    {/* Directly show GCash Details */}
+                                    {(() => {
+                                        const gcash = paymentSettings.find(m => m.name?.toLowerCase().includes('gcash')) || paymentSettings[0];
+                                        if (!gcash) return <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Payment details currently unavailable.</p>;
 
-                                    {/* Payment Details Area */}
-                                    {paymentMethod && (
-                                        <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
-                                            {paymentSettings.find(m => m.id === paymentMethod) ? (
-                                                (() => {
-                                                    const method = paymentSettings.find(m => m.id === paymentMethod);
-                                                    return (
-                                                        <div style={{ textAlign: 'center' }}>
-                                                            <h4 style={{ color: 'var(--primary)', marginBottom: '15px' }}>Send {method.name} Payment</h4>
-                                                            {method.qr_url && (
-                                                                <div style={{ background: 'white', padding: '10px', borderRadius: '12px', display: 'inline-block', marginBottom: '20px' }}>
-                                                                    <img src={method.qr_url} style={{ width: '180px', height: '180px', borderRadius: '10px', objectFit: 'contain' }} alt="QR Code" />
-                                                                </div>
-                                                            )}
-                                                            <div style={{ background: 'white', padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '5px' }}>Account Number</div>
-                                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '8px' }}>
-                                                                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--primary)' }}>{method.account_number}</div>
-                                                                    <button
-                                                                        onClick={() => { navigator.clipboard.writeText(method.account_number); alert('Copied!'); }}
-                                                                        style={{ border: 'none', background: 'var(--primary)', color: 'white', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600, fontSize: '0.8rem' }}
-                                                                    >
-                                                                        <Copy size={14} /> Copy
-                                                                    </button>
-                                                                </div>
-                                                                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-muted)' }}>{method.account_name}</div>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })()
-                                            ) : (
-                                                <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Details not found.</p>
-                                            )}
-                                        </div>
-                                    )}
+                                        return (
+                                            <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '20px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                                                <h4 style={{ color: 'var(--primary)', marginBottom: '15px', fontSize: '1.1rem' }}>Our GCash Details</h4>
+
+                                                {gcash.qr_url && (
+                                                    <div style={{ background: 'white', padding: '10px', borderRadius: '12px', display: 'inline-block', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                                                        <img src={gcash.qr_url} style={{ width: '160px', height: '160px', borderRadius: '10px', objectFit: 'contain' }} alt="GCash QR Code" />
+                                                    </div>
+                                                )}
+
+                                                <div style={{ background: 'white', padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '5px' }}>Account Number</div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '8px' }}>
+                                                        <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)', letterSpacing: '1px' }}>{gcash.account_number}</div>
+                                                        <button
+                                                            onClick={() => { navigator.clipboard.writeText(gcash.account_number); alert('GCash number copied!'); }}
+                                                            style={{ border: 'none', background: 'var(--primary)', color: 'white', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, fontSize: '0.8rem' }}
+                                                        >
+                                                            <Copy size={14} /> Copy
+                                                        </button>
+                                                    </div>
+                                                    <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-dark)' }}>{gcash.account_name}</div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
 
                                 {/* Order Type & Form here (omitted for brevity, assume exists as before) */}
